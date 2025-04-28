@@ -82,10 +82,21 @@ const PostInternshipForm = ({ onSuccess }: PostInternshipFormProps) => {
         .map(req => req.trim())
         .filter(req => req.length > 0);
       
+      // Here's the fix: Ensure all required properties are provided
       await createInternship({
-        ...data,
+        title: data.title,
+        company: data.company,
+        location: data.location,
+        category: data.category,
+        description: data.description,
         requirements: requirementsArray,
+        salary: data.salary,
+        duration: data.duration,
         deadline: new Date(data.deadline).toISOString(),
+        website: data.website || undefined,
+        logo_url: data.logo_url || undefined,
+        company_description: data.company_description,
+        is_remote: data.is_remote,
       });
       
       setSubmitted(true);
