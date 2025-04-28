@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -213,7 +212,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     for (const internship of dummyInternships) {
       try {
-        // Ensure all required fields are present and convert enum to string for storage
         const internshipToInsert = {
           title: internship.title!,
           company: internship.company!,
@@ -334,18 +332,25 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You have already applied for this internship");
       }
       
+      console.log("Submitting application data:", {
+        internship_id: internshipId,
+        student_id: user.id,
+        ...applicationData
+      });
+      
       const { data, error } = await supabase
         .from('applications')
         .insert([{
           internship_id: internshipId,
           student_id: user.id,
-          resume_url: applicationData.resume_url,
-          cover_letter: applicationData.cover_letter,
-          additional_questions: applicationData.additional_questions
+          resume_url: applicationData.resume_url || "",
+          cover_letter: applicationData.cover_letter || "",
+          additional_questions: applicationData.additional_questions || {}
         }])
         .select();
       
       if (error) {
+        console.error("Supabase error when applying:", error);
         throw error;
       }
       

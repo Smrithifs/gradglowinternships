@@ -141,6 +141,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data.user) {
+        // After signup, manually create the profile entry to ensure it exists
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            role: role,
+            name: name,
+            email: email
+          }, { onConflict: 'id' });
+          
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
+          
         // Login the user automatically after signup
         await signIn(email, password);
         

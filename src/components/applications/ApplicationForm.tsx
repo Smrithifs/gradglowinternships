@@ -23,19 +23,14 @@ interface ApplicationFormProps {
   onSuccess: () => void;
 }
 
+// Updated schema to make all fields optional
 const formSchema = z.object({
-  resume_url: z.string().url({ message: "Please enter a valid URL to your resume" }),
-  cover_letter: z.string().min(50, {
-    message: "Cover letter must be at least 50 characters.",
-  }),
+  resume_url: z.string().url({ message: "Please enter a valid URL to your resume" }).optional(),
+  cover_letter: z.string().optional(),
   linkedIn: z.string().url({ message: "Please enter a valid LinkedIn URL" }).optional().or(z.literal("")),
   portfolio: z.string().url({ message: "Please enter a valid portfolio URL" }).optional().or(z.literal("")),
-  whyInterested: z.string().min(10, {
-    message: "Please provide a more detailed response.",
-  }),
-  relevantExperience: z.string().min(10, {
-    message: "Please provide a more detailed response.",
-  }),
+  whyInterested: z.string().optional(),
+  relevantExperience: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,16 +56,16 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
     try {
       // Prepare additional questions
       const additionalQuestions = {
-        linkedIn: data.linkedIn,
-        portfolio: data.portfolio,
-        whyInterested: data.whyInterested,
-        relevantExperience: data.relevantExperience,
+        linkedIn: data.linkedIn || "",
+        portfolio: data.portfolio || "",
+        whyInterested: data.whyInterested || "",
+        relevantExperience: data.relevantExperience || "",
       };
       
-      // Submit application
+      // Submit application with all fields (even if empty)
       await applyForInternship(internshipId, {
-        resume_url: data.resume_url,
-        cover_letter: data.cover_letter,
+        resume_url: data.resume_url || "",
+        cover_letter: data.cover_letter || "",
         additional_questions: additionalQuestions,
       });
       
@@ -109,12 +104,12 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           name="resume_url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Resume/CV Link</FormLabel>
+              <FormLabel>Resume/CV Link (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="https://drive.google.com/your-resume" {...field} />
               </FormControl>
               <FormDescription>
-                Please provide a link to your resume (Google Drive, Dropbox, etc.)
+                You can provide a link to your resume (Google Drive, Dropbox, etc.)
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -126,7 +121,7 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           name="cover_letter"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cover Letter</FormLabel>
+              <FormLabel>Cover Letter (Optional)</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Tell us why you're interested in this position..." 
@@ -172,7 +167,7 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           name="whyInterested"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Why are you interested in this internship?</FormLabel>
+              <FormLabel>Why are you interested in this internship? (Optional)</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Explain your interest in this specific role..." 
@@ -190,7 +185,7 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           name="relevantExperience"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>What relevant experience do you have?</FormLabel>
+              <FormLabel>What relevant experience do you have? (Optional)</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Describe any relevant courses, projects, or experience..." 
