@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navigation/Navbar";
@@ -64,7 +63,6 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 overflow-hidden">
-        {/* Animated background elements */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-full h-full">
             <svg 
@@ -96,12 +94,12 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/signup">
-                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105">
+                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto">
                   Get Started
                 </Button>
               </Link>
               <Link to="/internships">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105">
+                <Button size="lg" variant="outline" className="border-white text-white bg-transparent hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto">
                   Browse Internships
                 </Button>
               </Link>
@@ -110,7 +108,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Features Section */}
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
@@ -141,7 +138,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.div
@@ -172,7 +168,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <motion.div
@@ -205,7 +200,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 py-16 relative overflow-hidden">
         <div className="absolute inset-0">
           <svg 
@@ -233,12 +227,12 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/signup">
-                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105">
+                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto">
                   Sign Up Now
                 </Button>
               </Link>
               <Link to="/login">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105">
+                <Button size="lg" variant="outline" className="border-white text-white bg-transparent hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto">
                   Log In
                 </Button>
               </Link>

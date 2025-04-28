@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +27,129 @@ export const useInternships = () => {
   return context;
 };
 
+const dummyInternships: Partial<Internship>[] = [
+  {
+    title: "Software Development Intern",
+    company: "Google",
+    location: "Bangalore, India",
+    description: "Join Google's dynamic engineering team and work on cutting-edge technologies. You'll collaborate with experienced developers on real-world projects that impact millions of users globally.",
+    requirements: ["Pursuing B.Tech/M.Tech in Computer Science or related field", "Knowledge of Java, Python, or JavaScript", "Strong problem-solving skills", "Good communication skills"],
+    category: InternshipCategory.SOFTWARE_DEVELOPMENT,
+    duration: "3 months",
+    salary: "₹60,000/month",
+    deadline: new Date(2025, 6, 30).toISOString(),
+    is_remote: false,
+    website: "https://careers.google.com",
+    logo_url: "https://logo.clearbit.com/google.com",
+    company_description: "Google is a global technology leader focused on improving the ways people connect with information."
+  },
+  {
+    title: "Data Science Intern",
+    company: "Microsoft",
+    location: "Hyderabad, India",
+    description: "Work with our data science team to analyze large datasets and develop machine learning models that solve real business problems.",
+    requirements: ["Pursuing Masters in Statistics, Mathematics, or Computer Science", "Experience with Python, R, or SQL", "Knowledge of machine learning algorithms", "Strong analytical skills"],
+    category: InternshipCategory.DATA_SCIENCE,
+    duration: "6 months",
+    salary: "₹50,000/month",
+    deadline: new Date(2025, 7, 15).toISOString(),
+    is_remote: true,
+    website: "https://careers.microsoft.com",
+    logo_url: "https://logo.clearbit.com/microsoft.com",
+    company_description: "Microsoft is a technology company that develops, licenses, supports, and sells computer software, consumer electronics, and personal computers."
+  },
+  {
+    title: "Product Management Intern",
+    company: "Amazon",
+    location: "New Delhi, India",
+    description: "Join our product team to help define and launch new features. You'll work closely with engineers, designers, and other product managers.",
+    requirements: ["Pursuing MBA or equivalent", "Strong analytical skills", "Excellent communication", "Interest in e-commerce"],
+    category: InternshipCategory.PRODUCT_MANAGEMENT,
+    duration: "3 months",
+    salary: "₹55,000/month",
+    deadline: new Date(2025, 5, 20).toISOString(),
+    is_remote: false,
+    website: "https://amazon.jobs",
+    logo_url: "https://logo.clearbit.com/amazon.com",
+    company_description: "Amazon is guided by four principles: customer obsession rather than competitor focus, passion for invention, commitment to operational excellence, and long-term thinking."
+  },
+  {
+    title: "UX/UI Design Intern",
+    company: "Flipkart",
+    location: "Bangalore, India",
+    description: "Design user interfaces for Flipkart's web and mobile applications. Work with product managers and engineers to implement your designs.",
+    requirements: ["Knowledge of design tools like Figma or Adobe XD", "Understanding of UX principles", "Basic HTML/CSS skills", "Portfolio of previous work"],
+    category: InternshipCategory.DESIGN,
+    duration: "4 months",
+    salary: "₹40,000/month",
+    deadline: new Date(2025, 8, 10).toISOString(),
+    is_remote: true,
+    website: "https://www.flipkartcareers.com",
+    logo_url: "https://logo.clearbit.com/flipkart.com",
+    company_description: "Flipkart is India's leading e-commerce marketplace with over 80 million products across 80+ categories."
+  },
+  {
+    title: "Marketing Intern",
+    company: "Netflix",
+    location: "Mumbai, India",
+    description: "Join our marketing team to develop and implement marketing strategies for Netflix in India. Work on social media campaigns, content marketing, and brand partnerships.",
+    requirements: ["Pursuing degree in Marketing or Communications", "Creative mindset", "Excellent writing skills", "Knowledge of digital marketing"],
+    category: InternshipCategory.MARKETING,
+    duration: "6 months",
+    salary: "₹45,000/month",
+    deadline: new Date(2025, 6, 5).toISOString(),
+    is_remote: false,
+    website: "https://jobs.netflix.com",
+    logo_url: "https://logo.clearbit.com/netflix.com",
+    company_description: "Netflix is one of the world's leading entertainment services with millions of subscribers in over 190 countries."
+  },
+  {
+    title: "Finance Intern",
+    company: "Goldman Sachs",
+    location: "Bangalore, India",
+    description: "Work with financial analysts to support various finance functions including financial planning, reporting, and analysis.",
+    requirements: ["Pursuing degree in Finance, Economics, or Accounting", "Strong analytical skills", "Proficiency in Excel", "Attention to detail"],
+    category: InternshipCategory.FINANCE,
+    duration: "3 months",
+    salary: "₹50,000/month",
+    deadline: new Date(2025, 7, 25).toISOString(),
+    is_remote: false,
+    website: "https://www.goldmansachs.com/careers",
+    logo_url: "https://logo.clearbit.com/goldmansachs.com",
+    company_description: "Goldman Sachs is a leading global investment banking, securities and investment management firm."
+  },
+  {
+    title: "Frontend Developer Intern",
+    company: "Adobe",
+    location: "Noida, India",
+    description: "Develop user interfaces for Adobe's creative software products. Work with modern JavaScript frameworks to build responsive and accessible web applications.",
+    requirements: ["Knowledge of HTML, CSS, and JavaScript", "Experience with React or Vue", "Understanding of responsive design", "Passion for web development"],
+    category: InternshipCategory.SOFTWARE_DEVELOPMENT,
+    duration: "6 months",
+    salary: "₹45,000/month",
+    deadline: new Date(2025, 9, 15).toISOString(),
+    is_remote: true,
+    website: "https://www.adobe.com/careers",
+    logo_url: "https://logo.clearbit.com/adobe.com",
+    company_description: "Adobe is the global leader in digital media and digital marketing solutions."
+  },
+  {
+    title: "Machine Learning Intern",
+    company: "IBM",
+    location: "Hyderabad, India",
+    description: "Research and develop machine learning algorithms and applications. Implement and test ML models for various use cases.",
+    requirements: ["Pursuing Masters or PhD in Computer Science or related field", "Knowledge of ML frameworks like TensorFlow or PyTorch", "Strong programming skills", "Experience with data analysis"],
+    category: InternshipCategory.DATA_SCIENCE,
+    duration: "6 months",
+    salary: "₹40,000/month",
+    deadline: new Date(2025, 8, 30).toISOString(),
+    is_remote: false,
+    website: "https://www.ibm.com/careers",
+    logo_url: "https://logo.clearbit.com/ibm.com",
+    company_description: "IBM is a global technology and innovation company headquartered in Armonk, NY."
+  }
+];
+
 export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const [internships, setInternships] = useState<Internship[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -52,17 +174,60 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) {
         console.error("Error fetching internships:", error);
+        if (dummyInternships.length > 0) {
+          console.log("Using dummy internship data instead");
+          populateDummyInternships();
+        }
         return;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         setInternships(data as unknown as Internship[]);
+      } else if (dummyInternships.length > 0) {
+        console.log("No internships found in database. Using dummy internship data");
+        populateDummyInternships();
       }
     } catch (error) {
       console.error("Error fetching internships:", error);
+      if (dummyInternships.length > 0) {
+        populateDummyInternships();
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const populateDummyInternships = async () => {
+    if (!user || user.role !== 'recruiter') {
+      const localDummyInternships = dummyInternships.map((intern, index) => ({
+        ...intern,
+        id: `dummy-${index}`,
+        created_at: new Date().toISOString(),
+        recruiter_id: 'dummy-recruiter'
+      })) as Internship[];
+      
+      setInternships(localDummyInternships);
+      return;
+    }
+    
+    for (const internship of dummyInternships) {
+      try {
+        const { error } = await supabase
+          .from('internships')
+          .insert([{
+            ...internship,
+            recruiter_id: user.id
+          }]);
+          
+        if (error) {
+          console.error("Error inserting dummy internship:", error);
+        }
+      } catch (error) {
+        console.error("Error inserting dummy internship:", error);
+      }
+    }
+    
+    fetchInternships();
   };
 
   const fetchApplications = async () => {
@@ -78,7 +243,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           .select('*')
           .eq('student_id', user.id);
       } else {
-        // For recruiters, get all applications for their internships
         const { data: recruiterInterns } = await supabase
           .from('internships')
           .select('id')
@@ -115,31 +279,25 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Get internship by ID
   const getInternshipById = (id: string) => {
     return internships.find(internship => internship.id === id);
   };
 
-  // Filter user applications
   const userApplications = applications.filter(app => 
     user?.role === "student" && app.student_id === user?.id
   );
 
-  // Filter recruiter internships
   const recruiterInternships = internships.filter(internship => 
     user?.role === "recruiter" && internship.recruiter_id === user?.id
   );
 
-  // Get applications for recruiter's internships
   const recruiterApplications = applications.filter(app => {
     if (user?.role !== "recruiter") return false;
     
-    // Check if this application is for one of the recruiter's internships
     const internship = internships.find(i => i.id === app.internship_id);
     return internship && internship.recruiter_id === user.id;
   });
 
-  // Check if user has already applied to an internship
   const hasApplied = (internshipId: string) => {
     if (!user || user.role !== "student") return false;
     
@@ -148,7 +306,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  // Apply for internship
   const applyForInternship = async (internshipId: string, applicationData: Partial<Application>) => {
     setLoading(true);
     
@@ -157,12 +314,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a student to apply");
       }
       
-      // Check if already applied
       if (hasApplied(internshipId)) {
         throw new Error("You have already applied for this internship");
       }
       
-      // Create application in Supabase
       const { data, error } = await supabase
         .from('applications')
         .insert([{
@@ -199,7 +354,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Create new internship
   const createInternship = async (internship: Omit<Internship, 'id' | 'created_at' | 'recruiter_id'>) => {
     setLoading(true);
     
@@ -208,7 +362,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to post internships");
       }
       
-      // Create internship in Supabase
       const { data, error } = await supabase
         .from('internships')
         .insert([{
@@ -242,7 +395,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Update application status
   const updateApplicationStatus = async (applicationId: string, status: ApplicationStatus) => {
     setLoading(true);
     
@@ -251,7 +403,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to update application status");
       }
       
-      // Update status in Supabase
       const { data, error } = await supabase
         .from('applications')
         .update({ status })
@@ -263,7 +414,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data) {
-        // Update local state
         const updatedApplications = applications.map(app => 
           app.id === applicationId ? { ...app, status } : app
         );

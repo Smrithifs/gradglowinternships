@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up the auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("Auth state changed:", event, session);
         setSession(session);
         
         if (session?.user) {
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }, 0);
         } else {
           setUser(null);
+          setLoading(false);
         }
       }
     );
@@ -56,8 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         await fetchUserProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initSession();
@@ -77,10 +80,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        setLoading(false);
         return;
       }
 
       if (data) {
+        console.log("User profile fetched:", data);
         setUser({
           id: userId,
           email: session?.user?.email || '',
@@ -89,8 +94,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           avatar_url: data.avatar_url
         });
       }
+      setLoading(false);
     } catch (error) {
       console.error('Error in profile fetch:', error);
+      setLoading(false);
     }
   };
 
@@ -98,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     try {
+      console.log("Signing in with:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -107,11 +115,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
-      });
-
+      // Redirect user based on role after successful login
+      if (data.user) {
+        // The profile and redirect will be handled by onAuthStateChange
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+      }
     } catch (error: any) {
       console.error("Error signing in:", error);
       toast({
@@ -119,7 +130,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -128,6 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     
     try {
+      console.log("Signing up with:", { email, role, name });
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -135,7 +146,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             role,
             name
-          }
+          },
+          emailRedirectTo: window.location.origin
         }
       });
 
@@ -143,10 +155,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
       
-      toast({
-        title: "Account created!",
-        description: "Your account has been successfully created.",
-      });
+      if (data.user) {
+        // Login the user automatically after signup
+        await signIn(email, password);
+        
+        toast({
+          title: "Account created!",
+          description: "Your account has been successfully created.",
+        });
+      }
       
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -155,7 +172,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: error.message || "An error occurred during sign up.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };

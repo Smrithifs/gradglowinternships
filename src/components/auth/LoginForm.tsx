@@ -84,7 +84,7 @@ const LoginForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white" disabled={isLoading}>
             {isLoading ? "Signing In..." : "Sign In"}
           </Button>
         </form>
@@ -93,7 +93,7 @@ const LoginForm = () => {
       <div className="mt-6 text-center">
         <p className="text-gray-600">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-gradMid hover:underline">
+          <Link to="/signup" className="text-purple-600 hover:underline">
             Sign up
           </Link>
         </p>
