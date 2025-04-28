@@ -40,7 +40,10 @@ export enum InternshipCategory {
   ENGINEERING = "Engineering",
   HEALTHCARE = "Healthcare",
   EDUCATION = "Education",
-  OTHER = "Other"
+  OTHER = "Other",
+  SOFTWARE_DEVELOPMENT = "Software Development",
+  DATA_SCIENCE = "Data Science",
+  PRODUCT_MANAGEMENT = "Product Management"
 }
 
 export interface Application {

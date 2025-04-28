@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -212,12 +213,27 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     for (const internship of dummyInternships) {
       try {
+        // Ensure all required fields are present and convert enum to string for storage
+        const internshipToInsert = {
+          title: internship.title!,
+          company: internship.company!,
+          location: internship.location!,
+          category: internship.category!.toString(),
+          description: internship.description!,
+          requirements: internship.requirements!,
+          salary: internship.salary,
+          duration: internship.duration!,
+          website: internship.website,
+          logo_url: internship.logo_url,
+          deadline: internship.deadline!,
+          is_remote: internship.is_remote!,
+          recruiter_id: user.id,
+          company_description: internship.company_description
+        };
+        
         const { error } = await supabase
           .from('internships')
-          .insert([{
-            ...internship,
-            recruiter_id: user.id
-          }]);
+          .insert([internshipToInsert]);
           
         if (error) {
           console.error("Error inserting dummy internship:", error);

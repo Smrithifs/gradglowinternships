@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -26,6 +27,7 @@ const LoginForm = () => {
   const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -38,10 +40,37 @@ const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
     try {
-      await signIn(values.email, values.password);
-      // Navigation happens in the useEffect in AuthContext when session changes
-    } catch (error) {
+      const result = await signIn(values.email, values.password);
+      
+      if (result.error) {
+        toast({
+          title: "Login failed",
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      // Redirect based on user role
+      if (result.data?.user?.user_metadata?.role === UserRole.STUDENT) {
+        navigate('/dashboard');
+      } else if (result.data?.user?.user_metadata?.role === UserRole.RECRUITER) {
+        navigate('/recruiter-dashboard');
+      } else {
+        navigate('/internships');
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +113,7 @@ const LoginForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold" disabled={isLoading}>
             {isLoading ? "Signing In..." : "Sign In"}
           </Button>
         </form>
