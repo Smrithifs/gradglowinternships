@@ -36,7 +36,10 @@ const InternshipDetails = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-2">Internship Not Found</h2>
             <p className="text-gray-600 mb-6">The internship you're looking for doesn't exist or has been removed.</p>
-            <Button onClick={() => navigate("/internships")}>Browse Internships</Button>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={() => navigate("/internships")}>Browse Internships</Button>
+              <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
+            </div>
           </div>
         </div>
         <Footer />
@@ -52,6 +55,19 @@ const InternshipDetails = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-12">
+        <div className="mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Back
+          </Button>
+        </div>
+        
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 flex items-start justify-between">
             <div>
@@ -127,9 +143,12 @@ const InternshipDetails = () => {
                 href={internship.website} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-gradMid hover:underline"
+                className="text-indigo-600 hover:underline flex items-center gap-1"
               >
                 Visit Company Website
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
               </a>
             )}
             
@@ -140,7 +159,7 @@ const InternshipDetails = () => {
                 <>
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button size="lg">Apply Now</Button>
+                      <Button size="lg" className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">Apply Now</Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
@@ -155,7 +174,11 @@ const InternshipDetails = () => {
                 </>
               )
             ) : !isAuthenticated ? (
-              <Button size="lg" onClick={() => navigate("/login")}>
+              <Button 
+                size="lg" 
+                onClick={() => navigate("/login")}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+              >
                 Sign In to Apply
               </Button>
             ) : null}

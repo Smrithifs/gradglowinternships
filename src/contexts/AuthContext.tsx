@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
@@ -25,66 +27,96 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check if user is already authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // In a real app, this would check with Supabase
-        const storedUser = localStorage.getItem("gradglow_user");
+    // Set up the auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
         
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        if (session?.user) {
+          // Fetch the user profile from profiles table
+          setTimeout(() => {
+            fetchUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        console.error("Error checking authentication:", error);
-      } finally {
-        setLoading(false);
       }
+    );
+
+    // THEN check for existing session
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      }
+      setLoading(false);
     };
 
-    checkAuth();
+    initSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock sign in function - would use Supabase in real implementation
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      if (data) {
+        setUser({
+          id: userId,
+          email: session?.user?.email || '',
+          role: data.role === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
+          name: data.name,
+          avatar_url: data.avatar_url
+        });
+      }
+    } catch (error) {
+      console.error('Error in profile fetch:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     
     try {
-      // In a real app, this would call Supabase auth.signIn
-      // Mocking authentication for demo purposes
-      const mockUsers = [
-        { id: "1", email: "student@example.com", password: "password", role: UserRole.STUDENT, name: "John Student" },
-        { id: "2", email: "recruiter@example.com", password: "password", role: UserRole.RECRUITER, name: "Jane Recruiter" }
-      ];
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-      
-      if (!foundUser) {
-        throw new Error("Invalid credentials");
+      if (error) {
+        throw error;
       }
-      
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      
-      // Store user in localStorage for persistence
-      localStorage.setItem("gradglow_user", JSON.stringify(userWithoutPassword));
 
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
 
-      // Redirect based on role
-      navigate(foundUser.role === UserRole.STUDENT ? "/dashboard" : "/recruiter-dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in:", error);
       toast({
         title: "Sign in failed",
-        description: error instanceof Error ? error.message : "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
     } finally {
@@ -92,35 +124,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Mock sign up function - would use Supabase in real implementation
   const signUp = async (email: string, password: string, role: UserRole, name: string) => {
     setLoading(true);
     
     try {
-      // In a real app, this would call Supabase auth.signUp
-      // For demo purposes, we'll pretend the signup was successful
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        role,
-        name
-      };
-      
-      setUser(newUser);
-      localStorage.setItem("gradglow_user", JSON.stringify(newUser));
+        password,
+        options: {
+          data: {
+            role,
+            name
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Account created!",
         description: "Your account has been successfully created.",
       });
       
-      // Redirect based on role
-      navigate(role === UserRole.STUDENT ? "/dashboard" : "/recruiter-dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing up:", error);
       toast({
         title: "Sign up failed",
-        description: error instanceof Error ? error.message : "An error occurred during sign up.",
+        description: error.message || "An error occurred during sign up.",
         variant: "destructive",
       });
     } finally {
@@ -128,22 +160,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Mock sign out function
   const signOut = async () => {
     try {
-      // In a real app, this would call Supabase auth.signOut
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       setUser(null);
-      localStorage.removeItem("gradglow_user");
+      setSession(null);
+      
       toast({
         title: "Signed out",
         description: "You've been successfully signed out.",
       });
+      
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing out:", error);
       toast({
         title: "Sign out failed",
-        description: "An error occurred while signing out.",
+        description: error.message || "An error occurred while signing out.",
         variant: "destructive",
       });
     }

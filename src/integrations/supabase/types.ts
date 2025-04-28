@@ -9,7 +9,125 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          additional_questions: Json | null
+          cover_letter: string | null
+          created_at: string
+          id: string
+          internship_id: string
+          resume_url: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          additional_questions?: Json | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          internship_id: string
+          resume_url?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          additional_questions?: Json | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          internship_id?: string
+          resume_url?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_internship_id_fkey"
+            columns: ["internship_id"]
+            isOneToOne: false
+            referencedRelation: "internships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internships: {
+        Row: {
+          category: string
+          company: string
+          company_description: string | null
+          created_at: string
+          deadline: string
+          description: string
+          duration: string
+          id: string
+          is_remote: boolean
+          location: string
+          logo_url: string | null
+          recruiter_id: string
+          requirements: string[]
+          salary: string | null
+          title: string
+          website: string | null
+        }
+        Insert: {
+          category: string
+          company: string
+          company_description?: string | null
+          created_at?: string
+          deadline: string
+          description: string
+          duration: string
+          id?: string
+          is_remote?: boolean
+          location: string
+          logo_url?: string | null
+          recruiter_id: string
+          requirements: string[]
+          salary?: string | null
+          title: string
+          website?: string | null
+        }
+        Update: {
+          category?: string
+          company?: string
+          company_description?: string | null
+          created_at?: string
+          deadline?: string
+          description?: string
+          duration?: string
+          id?: string
+          is_remote?: boolean
+          location?: string
+          logo_url?: string | null
+          recruiter_id?: string
+          requirements?: string[]
+          salary?: string | null
+          title?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          id: string
+          name: string | null
+          role: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          id: string
+          name?: string | null
+          role: string
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string
+          name?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

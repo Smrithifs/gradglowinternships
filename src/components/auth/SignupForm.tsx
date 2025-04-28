@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserRole } from "@/types";
@@ -32,6 +32,7 @@ const FormSchema = z.object({
 const SignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -48,6 +49,7 @@ const SignupForm = () => {
     setIsLoading(true);
     try {
       await signUp(values.email, values.password, values.role, values.name);
+      // Navigation happens in the useEffect in AuthContext when session changes
     } catch (error) {
       console.error("Signup error:", error);
     } finally {
@@ -58,7 +60,7 @@ const SignupForm = () => {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold gradient-text">Create an Account</h1>
+        <h1 className="text-3xl font-bold gradient-text bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">Create an Account</h1>
         <p className="text-gray-600 mt-2">Join GradGlow to find your perfect internship.</p>
       </div>
       
@@ -132,13 +134,13 @@ const SignupForm = () => {
                     defaultValue={field.value} 
                     className="flex flex-col space-y-1"
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                       <RadioGroupItem value={UserRole.STUDENT} id="student" />
-                      <FormLabel htmlFor="student" className="font-normal cursor-pointer">Student looking for internships</FormLabel>
+                      <FormLabel htmlFor="student" className="font-normal cursor-pointer w-full">Student looking for internships</FormLabel>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                       <RadioGroupItem value={UserRole.RECRUITER} id="recruiter" />
-                      <FormLabel htmlFor="recruiter" className="font-normal cursor-pointer">Recruiter looking to hire interns</FormLabel>
+                      <FormLabel htmlFor="recruiter" className="font-normal cursor-pointer w-full">Recruiter looking to hire interns</FormLabel>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -147,7 +149,7 @@ const SignupForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" disabled={isLoading}>
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
 import { InternshipCategory } from "@/types";
+import { motion } from "framer-motion";
 
 const Index = () => {
   const features = [
@@ -37,98 +38,212 @@ const Index = () => {
   ];
 
   const categories = Object.values(InternshipCategory);
+  
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.2
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="bg-main-gradient relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-gradStart/80 to-gradMid/80 z-0"></div>
+      <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-0 w-full h-full">
+            <svg 
+              viewBox="0 0 1000 1000" 
+              opacity="0.2" 
+              className="w-full h-full"
+            >
+              <circle cx="850" cy="150" r="150" fill="white" />
+              <circle cx="100" cy="700" r="120" fill="white" />
+              <circle cx="500" cy="500" r="80" fill="white" />
+            </svg>
+          </div>
+        </div>
+        
         <Navbar />
-        <div className="container mx-auto px-4 pt-24 pb-20 md:pt-40 md:pb-32 relative z-1">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-              Find Your Perfect Internship, Grow Your Career
+        
+        <div className="container mx-auto px-4 pt-24 pb-20 md:pt-32 md:pb-32 relative z-1">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-3xl mx-auto text-center"
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 drop-shadow-lg">
+              Find Your <span className="text-yellow-300">Perfect Internship</span>, Grow Your Career
             </h1>
             <p className="text-lg md:text-xl text-white/90 mb-8">
               Connect with top companies and kickstart your professional journey with meaningful internship opportunities.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/signup">
-                <Button size="lg" variant="default" className="bg-white text-gradStart hover:bg-white/90">
+                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105">
                   Get Started
                 </Button>
               </Link>
               <Link to="/internships">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105">
                   Browse Internships
                 </Button>
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Features Section */}
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            How <span className="gradient-text">GradGlow</span> Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-all">
-                <div className="w-12 h-12 bg-gradMid/10 flex items-center justify-center rounded-full text-gradMid mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={containerVariants}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+              How <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">GradGlow</span> Works
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {features.map((feature, index) => (
+                <motion.div 
+                  key={index} 
+                  variants={itemVariants}
+                  className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center rounded-full text-indigo-600 mb-4">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Categories Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Explore Internships by Category
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {categories.map((category, index) => (
-              <Link 
-                key={index} 
-                to={`/internships?category=${category}`} 
-                className="p-6 rounded-lg bg-card-gradient hover:shadow-md transition-all text-center gradient-border"
-              >
-                <h3 className="text-lg font-medium">{category}</h3>
-              </Link>
-            ))}
-          </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            variants={containerVariants}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+              Explore Internships by Category
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categories.map((category, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                >
+                  <Link 
+                    to={`/internships?category=${category}`} 
+                    className="p-6 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 hover:shadow-md transition-all text-center border border-transparent hover:border-indigo-200 block h-full"
+                  >
+                    <h3 className="text-lg font-medium text-indigo-800">{category}</h3>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-12">Our Impact</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="p-4">
+                <div className="text-4xl font-bold text-indigo-600 mb-2">500+</div>
+                <div className="text-gray-600">Companies</div>
+              </div>
+              <div className="p-4">
+                <div className="text-4xl font-bold text-indigo-600 mb-2">1,000+</div>
+                <div className="text-gray-600">Internships</div>
+              </div>
+              <div className="p-4">
+                <div className="text-4xl font-bold text-indigo-600 mb-2">50,000+</div>
+                <div className="text-gray-600">Students</div>
+              </div>
+              <div className="p-4">
+                <div className="text-4xl font-bold text-indigo-600 mb-2">95%</div>
+                <div className="text-gray-600">Success Rate</div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-cta-gradient py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Find Your Next Opportunity?
-          </h2>
-          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-            Whether you're a student looking for internships or a recruiter seeking talent,
-            GradGlow has you covered.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
-              <Button size="lg" variant="default" className="bg-white text-gradStart hover:bg-white/90">
-                Sign Up Now
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Log In
-              </Button>
-            </Link>
-          </div>
+      <section className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 py-16 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <svg 
+            viewBox="0 0 1000 1000" 
+            opacity="0.1" 
+            className="w-full h-full"
+          >
+            <circle cx="900" cy="150" r="200" fill="white" />
+            <circle cx="100" cy="800" r="170" fill="white" />
+          </svg>
+        </div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-md">
+              Ready to Find Your Next Opportunity?
+            </h2>
+            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+              Whether you're a student looking for internships or a recruiter seeking talent,
+              GradGlow has you covered.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/signup">
+                <Button size="lg" variant="default" className="bg-white text-indigo-600 hover:bg-white/90 shadow-lg transition-all duration-300 hover:scale-105">
+                  Sign Up Now
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 shadow-lg transition-all duration-300 hover:scale-105">
+                  Log In
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 

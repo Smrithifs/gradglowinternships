@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useInternships } from "@/contexts/InternshipContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface ApplicationFormProps {
   internshipId: string;
@@ -42,6 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
   const { applyForInternship, loading } = useInternships();
   const [submitted, setSubmitted] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,6 +75,10 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
       });
       
       setSubmitted(true);
+      toast({
+        title: "Application submitted!",
+        description: "Thank you for applying. We will reach out to you soon.",
+      });
       setTimeout(() => {
         onSuccess();
       }, 2000);
@@ -197,7 +203,7 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" disabled={loading}>
           {loading ? "Submitting..." : "Submit Application"}
         </Button>
       </form>

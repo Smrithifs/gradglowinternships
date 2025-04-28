@@ -13,8 +13,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { UserRole } from "@/types";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -22,8 +23,9 @@ const FormSchema = z.object({
 });
 
 const LoginForm = () => {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -37,6 +39,7 @@ const LoginForm = () => {
     setIsLoading(true);
     try {
       await signIn(values.email, values.password);
+      // Navigation happens in the useEffect in AuthContext when session changes
     } catch (error) {
       console.error("Login error:", error);
     } finally {
@@ -81,7 +84,7 @@ const LoginForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" disabled={isLoading}>
             {isLoading ? "Signing In..." : "Sign In"}
           </Button>
         </form>
@@ -94,12 +97,6 @@ const LoginForm = () => {
             Sign up
           </Link>
         </p>
-      </div>
-
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h4 className="text-sm font-semibold mb-2">Demo Accounts:</h4>
-        <p className="text-xs text-gray-600 mb-1">Student: student@example.com / password</p>
-        <p className="text-xs text-gray-600">Recruiter: recruiter@example.com / password</p>
       </div>
     </div>
   );
