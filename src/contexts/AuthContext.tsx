@@ -4,12 +4,12 @@ import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { Session, AuthResponse } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
   signUp: (email: string, password: string, role: UserRole, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -101,36 +101,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     setLoading(true);
     
     try {
       console.log("Signing in with:", email);
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const response = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        throw error;
-      }
-
-      // Redirect user based on role after successful login
-      if (data.user) {
-        // The profile and redirect will be handled by onAuthStateChange
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully signed in.",
-        });
-      }
+      return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
-      toast({
-        title: "Sign in failed",
-        description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
       setLoading(false);
+      throw error;
     }
   };
 

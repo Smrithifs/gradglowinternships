@@ -40,12 +40,12 @@ const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
     try {
-      const result = await signIn(values.email, values.password);
+      const { data, error } = await signIn(values.email, values.password);
       
-      if (result.error) {
+      if (error) {
         toast({
           title: "Login failed",
-          description: result.error.message,
+          description: error.message,
           variant: "destructive",
         });
         return;
@@ -57,9 +57,9 @@ const LoginForm = () => {
       });
       
       // Redirect based on user role
-      if (result.data?.user?.user_metadata?.role === UserRole.STUDENT) {
+      if (data?.user?.user_metadata?.role === UserRole.STUDENT) {
         navigate('/dashboard');
-      } else if (result.data?.user?.user_metadata?.role === UserRole.RECRUITER) {
+      } else if (data?.user?.user_metadata?.role === UserRole.RECRUITER) {
         navigate('/recruiter-dashboard');
       } else {
         navigate('/internships');
