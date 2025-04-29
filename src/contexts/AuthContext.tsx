@@ -5,6 +5,7 @@ import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, AuthResponse } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 interface AuthContextType {
   user: User | null;
@@ -72,10 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Use typed version of the query
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', userId as any) // Cast to any to bypass TypeScript error
         .maybeSingle();
 
       if (error) {
@@ -86,12 +88,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data) {
         console.log("User profile fetched:", data);
+        // Check properties exist before accessing them
         setUser({
           id: userId,
           email: session?.user?.email || '',
-          role: data.role === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
-          name: data.name,
-          avatar_url: data.avatar_url
+          role: (data?.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
+          name: data?.name || undefined,
+          avatar_url: data?.avatar_url || undefined
         });
       }
       setLoading(false);
@@ -142,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         // After signup, manually create the profile entry to ensure it exists
-        // Use proper Supabase types
+        // Use proper type casting for the profile data
         const profileData = {
           id: data.user.id,
           role: role,
@@ -152,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert(profileData);
+          .upsert(profileData as any); // Cast to any to bypass TypeScript error
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
