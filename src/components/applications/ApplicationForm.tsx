@@ -38,6 +38,7 @@ type FormValues = z.infer<typeof formSchema>;
 const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
   const { applyForInternship, loading, getInternshipById } = useInternships();
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { toast } = useToast();
   
   // Get internship details to store with application
@@ -56,9 +57,14 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
   });
 
   const onSubmit = async (data: FormValues) => {
+    setSubmitError(null);
     try {
       console.log("Submitting form data:", data);
       console.log("Internship being applied to:", internship);
+      
+      if (!internship) {
+        throw new Error("Internship information not found");
+      }
       
       // Prepare additional questions
       const additionalQuestions = {
@@ -67,13 +73,13 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         whyInterested: data.whyInterested || "",
         relevantExperience: data.relevantExperience || "",
         // Also store internship details for reference
-        internshipTitle: internship?.title || "",
-        company: internship?.company || "",
-        location: internship?.location || "",
-        category: internship?.category || "",
+        internshipTitle: internship.title || "",
+        company: internship.company || "",
+        location: internship.location || "",
+        category: internship.category || "",
       };
       
-      // Submit application with all fields (even if empty)
+      // Submit application with all fields
       await applyForInternship(internshipId, {
         resume_url: data.resume_url || "",
         cover_letter: data.cover_letter || "",
@@ -85,14 +91,18 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         title: "Application submitted!",
         description: "Thank you for applying. We will reach out to you soon.",
       });
+      
+      // Delay success callback to allow toast to be seen
       setTimeout(() => {
         onSuccess();
       }, 2000);
     } catch (error) {
       console.error("Error submitting application:", error);
+      const errorMessage = error instanceof Error ? error.message : "There was a problem submitting your application";
+      setSubmitError(errorMessage);
       toast({
         title: "Application failed",
-        description: "There was a problem submitting your application. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -115,6 +125,12 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+        {submitError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm mb-4">
+            {submitError}
+          </div>
+        )}
+        
         <FormField
           control={form.control}
           name="resume_url"
