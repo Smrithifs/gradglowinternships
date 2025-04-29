@@ -1,15 +1,14 @@
-
-export enum UserRole {
-  STUDENT = "student",
-  RECRUITER = "recruiter"
-}
-
 export interface User {
   id: string;
   email: string;
   role: UserRole;
   name?: string;
   avatar_url?: string;
+}
+
+export enum UserRole {
+  STUDENT = "student",
+  RECRUITER = "recruiter",
 }
 
 export interface Internship {
@@ -20,30 +19,41 @@ export interface Internship {
   category: InternshipCategory;
   description: string;
   requirements: string[];
-  salary?: string;
+  salary: string | null;
   duration: string;
-  website?: string;
-  logo_url?: string;
+  website: string | null;
+  logo_url: string | null;
   created_at: string;
   deadline: string;
   is_remote: boolean;
+  company_description: string | null;
   recruiter_id: string;
-  company_description?: string;
 }
 
 export enum InternshipCategory {
-  TECH = "Technology",
-  DESIGN = "Design",
-  MARKETING = "Marketing",
-  BUSINESS = "Business",
-  FINANCE = "Finance",
-  ENGINEERING = "Engineering",
-  HEALTHCARE = "Healthcare",
-  EDUCATION = "Education",
-  OTHER = "Other",
   SOFTWARE_DEVELOPMENT = "Software Development",
   DATA_SCIENCE = "Data Science",
-  PRODUCT_MANAGEMENT = "Product Management"
+  PRODUCT_MANAGEMENT = "Product Management",
+  DESIGN = "Design",
+  MARKETING = "Marketing",
+  FINANCE = "Finance",
+  SALES = "Sales",
+  OPERATIONS = "Operations",
+  HUMAN_RESOURCES = "Human Resources",
+  CUSTOMER_SERVICE = "Customer Service",
+  TECH = "Tech",
+  HEALTHCARE = "Healthcare",
+  LEGAL = "Legal",
+  ARCHITECTURE = "Architecture",
+  EDUCATION = "Education",
+  HOSPITALITY = "Hospitality"
+}
+
+export enum ApplicationStatus {
+  PENDING = "pending",
+  REVIEWING = "reviewing",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
 }
 
 export interface Application {
@@ -54,34 +64,12 @@ export interface Application {
   resume_url?: string;
   cover_letter?: string;
   created_at: string;
-  additional_questions?: Record<string, string>;
-}
-
-export enum ApplicationStatus {
-  PENDING = "pending",
-  REVIEWING = "reviewing",
-  ACCEPTED = "accepted",
-  REJECTED = "rejected"
-}
-
-export interface StudentProfile {
-  id: string;
-  user_id: string;
-  university: string;
-  degree: string;
-  graduation_year: string;
-  skills: string[];
-  bio?: string;
-  linkedin_url?: string;
-  github_url?: string;
-  portfolio_url?: string;
-}
-
-export interface RecruiterProfile {
-  id: string;
-  user_id: string;
-  company: string;
-  position: string;
-  company_website?: string;
-  linkedin_url?: string;
+  additional_questions?: {
+    linkedIn?: string;
+    portfolio?: string;
+    whyInterested?: string;
+    relevantExperience?: string;
+    internshipTitle?: string;
+    company?: string;
+  };
 }

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -149,6 +148,111 @@ const dummyInternships: Partial<Internship>[] = [
     website: "https://www.ibm.com/careers",
     logo_url: "https://logo.clearbit.com/ibm.com",
     company_description: "IBM is a global technology and innovation company headquartered in Armonk, NY."
+  },
+  {
+    title: "Human Resources Intern",
+    company: "Deloitte",
+    location: "Mumbai, India",
+    description: "Join our HR team to gain hands-on experience in talent acquisition, employee engagement, and organizational development. Learn how HR functions support business strategy.",
+    requirements: ["Pursuing degree in HR Management or related field", "Strong interpersonal skills", "Excellent communication", "Basic knowledge of HR practices"],
+    category: InternshipCategory.HUMAN_RESOURCES,
+    duration: "4 months",
+    salary: "₹35,000/month",
+    deadline: new Date(2025, 6, 15).toISOString(),
+    is_remote: false,
+    website: "https://www2.deloitte.com/in/en/careers.html",
+    logo_url: "https://logo.clearbit.com/deloitte.com",
+    company_description: "Deloitte is a leading global provider of audit and assurance, consulting, financial advisory, risk advisory, tax, and related services."
+  },
+  {
+    title: "Supply Chain Management Intern",
+    company: "Tata Steel",
+    location: "Jamshedpur, India",
+    description: "Work with our supply chain team to optimize logistics operations, inventory management, and supplier relationships. Gain practical experience in one of India's largest manufacturing companies.",
+    requirements: ["Pursuing degree in Supply Chain Management or Operations", "Analytical mindset", "Knowledge of Excel", "Understanding of supply chain concepts"],
+    category: InternshipCategory.OPERATIONS,
+    duration: "6 months",
+    salary: "₹40,000/month",
+    deadline: new Date(2025, 8, 5).toISOString(),
+    is_remote: false,
+    website: "https://www.tatasteel.com/careers/",
+    logo_url: "https://logo.clearbit.com/tatasteel.com",
+    company_description: "Tata Steel is one of the world's most geographically diversified steel producers, with operations and commercial presence across the world."
+  },
+  {
+    title: "Healthcare Administration Intern",
+    company: "Apollo Hospitals",
+    location: "Chennai, India",
+    description: "Gain exposure to healthcare management practices including patient services, medical records management, and healthcare operations. Learn from industry leaders in healthcare administration.",
+    requirements: ["Pursuing degree in Healthcare Administration or related field", "Strong organizational skills", "Detail-oriented", "Interest in healthcare industry"],
+    category: InternshipCategory.HEALTHCARE,
+    duration: "3 months",
+    salary: "₹30,000/month",
+    deadline: new Date(2025, 7, 10).toISOString(),
+    is_remote: false,
+    website: "https://www.apollohospitals.com/careers",
+    logo_url: "https://logo.clearbit.com/apollohospitals.com",
+    company_description: "Apollo Hospitals is one of the most respected healthcare groups in Asia, with hospitals across India and international locations."
+  },
+  {
+    title: "Legal Research Intern",
+    company: "Cyril Amarchand Mangaldas",
+    location: "Delhi, India",
+    description: "Work with our legal team on research projects, case preparation, and legal document drafting. Get mentored by experienced legal professionals in one of India's top law firms.",
+    requirements: ["Pursuing law degree", "Strong research skills", "Attention to detail", "Good writing ability"],
+    category: InternshipCategory.LEGAL,
+    duration: "3 months",
+    salary: "₹25,000/month",
+    deadline: new Date(2025, 6, 25).toISOString(),
+    is_remote: true,
+    website: "https://www.cyrilshroff.com/careers/",
+    logo_url: "https://logo.clearbit.com/cyrilshroff.com",
+    company_description: "Cyril Amarchand Mangaldas is one of India's largest full-service law firms, with expertise across various practice areas."
+  },
+  {
+    title: "Architectural Design Intern",
+    company: "Morphogenesis",
+    location: "Bangalore, India",
+    description: "Join our architectural design team to work on real-world projects. Develop your skills in design conceptualization, 3D modeling, and sustainable architecture practices.",
+    requirements: ["Pursuing degree in Architecture", "Knowledge of AutoCAD and Revit", "Creative mindset", "Portfolio of previous work"],
+    category: InternshipCategory.ARCHITECTURE,
+    duration: "5 months",
+    salary: "₹35,000/month",
+    deadline: new Date(2025, 7, 30).toISOString(),
+    is_remote: false,
+    website: "https://www.morphogenesis.org/careers",
+    logo_url: "https://logo.clearbit.com/morphogenesis.org",
+    company_description: "Morphogenesis is one of India's leading architectural practices with a focus on sustainable design and innovation."
+  },
+  {
+    title: "Education Technology Intern",
+    company: "BYJU'S",
+    location: "Bangalore, India",
+    description: "Work with our product team to develop innovative educational content and improve learning experiences. Contribute to the future of online education.",
+    requirements: ["Pursuing degree in Education or Computer Science", "Interest in education technology", "Creative thinking", "Good communication skills"],
+    category: InternshipCategory.EDUCATION,
+    duration: "4 months",
+    salary: "₹45,000/month",
+    deadline: new Date(2025, 8, 15).toISOString(),
+    is_remote: true,
+    website: "https://byjus.com/careers/",
+    logo_url: "https://logo.clearbit.com/byjus.com",
+    company_description: "BYJU'S is a leading educational technology company providing personalized learning programs for students across age groups."
+  },
+  {
+    title: "Culinary Arts Intern",
+    company: "Taj Hotels",
+    location: "Mumbai, India",
+    description: "Train under experienced chefs in one of India's luxury hotel chains. Learn about food preparation, menu planning, and kitchen management in a professional setting.",
+    requirements: ["Pursuing degree in Culinary Arts or Hospitality", "Basic cooking skills", "Knowledge of food safety", "Passion for cuisine"],
+    category: InternshipCategory.HOSPITALITY,
+    duration: "6 months",
+    salary: "₹30,000/month",
+    deadline: new Date(2025, 7, 5).toISOString(),
+    is_remote: false,
+    website: "https://www.tajhotels.com/en-in/careers/",
+    logo_url: "https://logo.clearbit.com/tajhotels.com",
+    company_description: "Taj Hotels is a chain of luxury hotels and resorts headquartered in Mumbai, India, and is part of the Tata Group."
   }
 ];
 
