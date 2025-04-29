@@ -20,4 +20,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Output directory for production build
+    outDir: "dist",
+    // Clean output directory before build
+    emptyOutDir: true,
+    // Sourcemaps for debugging
+    sourcemap: mode === 'development',
+  }
 }));
