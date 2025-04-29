@@ -17,9 +17,12 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
       'X-Client-Info': 'lovable-internship-app'
     }
   },
-  // Improved error handling
   db: {
     schema: 'public'
+  },
+  // Add better debug logging
+  debug: {
+    logLevel: 'info'
   }
 });
 

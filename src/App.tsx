@@ -15,9 +15,18 @@ import InternshipsPage from "./pages/InternshipsPage";
 import InternshipDetails from "./pages/InternshipDetails";
 import StudentDashboard from "./pages/StudentDashboard";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
+import FAQ from "./pages/FAQ";
+import Resources from "./pages/Resources";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    }
+  }
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -35,6 +44,8 @@ const App = () => (
               <Route path="/internship/:id" element={<InternshipDetails />} />
               <Route path="/dashboard" element={<StudentDashboard />} />
               <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/resources" element={<Resources />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </InternshipProvider>

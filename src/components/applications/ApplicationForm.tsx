@@ -17,15 +17,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useInternships } from "@/contexts/InternshipContext";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface ApplicationFormProps {
   internshipId: string;
   onSuccess: () => void;
 }
 
-// Updated schema to make all fields optional
 const formSchema = z.object({
-  resume_url: z.string().url({ message: "Please enter a valid URL to your resume" }).optional(),
+  resume_url: z.string().url({ message: "Please enter a valid URL to your resume" }).optional().or(z.literal("")),
   cover_letter: z.string().optional(),
   linkedIn: z.string().url({ message: "Please enter a valid LinkedIn URL" }).optional().or(z.literal("")),
   portfolio: z.string().url({ message: "Please enter a valid portfolio URL" }).optional().or(z.literal("")),
@@ -66,17 +66,21 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         throw new Error("Internship information not found");
       }
       
-      // Prepare additional questions
+      // Prepare additional questions with ALL form fields and internship details
       const additionalQuestions = {
         linkedIn: data.linkedIn || "",
         portfolio: data.portfolio || "",
         whyInterested: data.whyInterested || "",
         relevantExperience: data.relevantExperience || "",
-        // Also store internship details for reference
+        // Include comprehensive internship details for reference
         internshipTitle: internship.title || "",
         company: internship.company || "",
         location: internship.location || "",
         category: internship.category || "",
+        salary: internship.salary || "",
+        duration: internship.duration || "",
+        is_remote: internship.is_remote || false,
+        deadline: internship.deadline || "",
       };
       
       // Submit application with all fields
@@ -230,8 +234,19 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
           )}
         />
 
-        <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" disabled={loading}>
-          {loading ? "Submitting..." : "Submit Application"}
+        <Button 
+          type="submit" 
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+              Submitting...
+            </>
+          ) : (
+            "Submit Application"
+          )}
         </Button>
       </form>
     </Form>

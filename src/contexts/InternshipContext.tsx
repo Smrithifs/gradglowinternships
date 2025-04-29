@@ -3,6 +3,7 @@ import { Internship, InternshipCategory, Application, ApplicationStatus } from "
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 interface InternshipContextType {
   internships: Internship[];
@@ -344,15 +345,34 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Internship not found");
       }
       
-      // Make sure additional_questions includes internship details for reference
-      const updatedAdditionalQuestions = {
-        ...(applicationData.additional_questions || {}),
-        internshipTitle: internship.title,
-        companyName: internship.company,
-        internshipCategory: internship.category,
-        internshipLocation: internship.location,
-      };
+      // Store application locally if it's a dummy internship
+      if (internshipId.startsWith('dummy-')) {
+        console.log("Handling dummy internship application");
+        // Create a local application with a UUID
+        const newApplication: Application = {
+          id: uuidv4(),
+          internship_id: internshipId,
+          student_id: user.id,
+          resume_url: applicationData.resume_url || null,
+          cover_letter: applicationData.cover_letter || null,
+          additional_questions: applicationData.additional_questions || {},
+          status: ApplicationStatus.PENDING,
+          created_at: new Date().toISOString(),
+        };
+        
+        // Add to local state
+        setApplications(prev => [...prev, newApplication]);
+        
+        toast({
+          title: "Application submitted!",
+          description: "Your application has been successfully submitted. We'll be in touch soon!",
+        });
+        
+        setLoading(false);
+        return;
+      }
       
+      // For real internships, submit to Supabase
       const { data, error } = await supabase
         .from('applications')
         .insert([{
@@ -360,7 +380,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           student_id: user.id,
           resume_url: applicationData.resume_url || null,
           cover_letter: applicationData.cover_letter || null,
-          additional_questions: updatedAdditionalQuestions,
+          additional_questions: applicationData.additional_questions || {},
           status: ApplicationStatus.PENDING
         }])
         .select();
