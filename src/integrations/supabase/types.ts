@@ -17,6 +17,7 @@ export type Database = {
           id: string
           internship_id: string
           resume_url: string | null
+          "resume/cv": string | null
           status: string
           student_id: string
         }
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           internship_id: string
           resume_url?: string | null
+          "resume/cv"?: string | null
           status?: string
           student_id: string
         }
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           internship_id?: string
           resume_url?: string | null
+          "resume/cv"?: string | null
           status?: string
           student_id?: string
         }
@@ -65,6 +68,7 @@ export type Database = {
           logo_url: string | null
           recruiter_id: string
           requirements: string[]
+          "Resume/CV": string | null
           salary: string | null
           title: string
           website: string | null
@@ -83,6 +87,7 @@ export type Database = {
           logo_url?: string | null
           recruiter_id: string
           requirements: string[]
+          "Resume/CV"?: string | null
           salary?: string | null
           title: string
           website?: string | null
@@ -101,6 +106,7 @@ export type Database = {
           logo_url?: string | null
           recruiter_id?: string
           requirements?: string[]
+          "Resume/CV"?: string | null
           salary?: string | null
           title?: string
           website?: string | null
@@ -110,18 +116,21 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          email: string | null
           id: string
           name: string | null
           role: string
         }
         Insert: {
           avatar_url?: string | null
+          email?: string | null
           id: string
           name?: string | null
           role: string
         }
         Update: {
           avatar_url?: string | null
+          email?: string | null
           id?: string
           name?: string | null
           role?: string

@@ -54,6 +54,8 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      console.log("Submitting form data:", data);
+      
       // Prepare additional questions
       const additionalQuestions = {
         linkedIn: data.linkedIn || "",
@@ -79,6 +81,11 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
       }, 2000);
     } catch (error) {
       console.error("Error submitting application:", error);
+      toast({
+        title: "Application failed",
+        description: "There was a problem submitting your application. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
