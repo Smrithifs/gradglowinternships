@@ -11,49 +11,53 @@ export type Database = {
     Tables: {
       applications: {
         Row: {
-          additional_questions: Json | null
           cover_letter: string | null
           created_at: string
           id: string
-          internship_id: string
+          internship_company: string
+          internship_title: string
+          linkedin_url: string | null
+          portfolio_url: string | null
+          relevant_experience: string | null
           resume_url: string | null
-          "resume/cv": string | null
           status: string
           student_id: string
+          student_name: string | null
+          why_interested: string | null
         }
         Insert: {
-          additional_questions?: Json | null
           cover_letter?: string | null
           created_at?: string
           id?: string
-          internship_id: string
+          internship_company: string
+          internship_title: string
+          linkedin_url?: string | null
+          portfolio_url?: string | null
+          relevant_experience?: string | null
           resume_url?: string | null
-          "resume/cv"?: string | null
           status?: string
           student_id: string
+          student_name?: string | null
+          why_interested?: string | null
         }
         Update: {
-          additional_questions?: Json | null
           cover_letter?: string | null
           created_at?: string
           id?: string
-          internship_id?: string
+          internship_company?: string
+          internship_title?: string
+          linkedin_url?: string | null
+          portfolio_url?: string | null
+          relevant_experience?: string | null
           resume_url?: string | null
-          "resume/cv"?: string | null
           status?: string
           student_id?: string
+          student_name?: string | null
+          why_interested?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "applications_internship_id_fkey"
-            columns: ["internship_id"]
-            isOneToOne: false
-            referencedRelation: "internships"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      internships: {
+      internship_listings: {
         Row: {
           category: string
           company: string
@@ -66,9 +70,7 @@ export type Database = {
           is_remote: boolean
           location: string
           logo_url: string | null
-          recruiter_id: string
           requirements: string[]
-          "Resume/CV": string | null
           salary: string | null
           title: string
           website: string | null
@@ -85,9 +87,7 @@ export type Database = {
           is_remote?: boolean
           location: string
           logo_url?: string | null
-          recruiter_id: string
           requirements: string[]
-          "Resume/CV"?: string | null
           salary?: string | null
           title: string
           website?: string | null
@@ -104,9 +104,7 @@ export type Database = {
           is_remote?: boolean
           location?: string
           logo_url?: string | null
-          recruiter_id?: string
           requirements?: string[]
-          "Resume/CV"?: string | null
           salary?: string | null
           title?: string
           website?: string | null

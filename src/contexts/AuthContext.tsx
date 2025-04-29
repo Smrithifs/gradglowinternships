@@ -5,7 +5,6 @@ import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, AuthResponse } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 interface AuthContextType {
   user: User | null;
@@ -73,11 +72,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      // Use typed version of the query
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId as any) // Cast to any to bypass TypeScript error
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -88,13 +86,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data) {
         console.log("User profile fetched:", data);
-        // Fixed type checking issues - use optional chaining and type assertions
+        
+        // Type as any to work around type issues
+        const profileData = data as any;
+        
         setUser({
           id: userId,
           email: session?.user?.email || '',
-          role: ((data as any)?.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
-          name: (data as any)?.name || undefined,
-          avatar_url: (data as any)?.avatar_url || undefined
+          role: (profileData.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
+          name: profileData.name || undefined,
+          avatar_url: profileData.avatar_url || undefined
         });
       }
       setLoading(false);
@@ -145,7 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         // After signup, manually create the profile entry to ensure it exists
-        // Use proper type casting for the profile data
         const profileData = {
           id: data.user.id,
           role: role,
@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert([profileData] as any); // Cast to any to bypass TypeScript error
+          .upsert([profileData]);
           
         if (profileError) {
           console.error("Error creating profile:", profileError);

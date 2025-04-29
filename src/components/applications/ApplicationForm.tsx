@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -66,21 +65,20 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         throw new Error("Internship information not found");
       }
       
-      // Prepare additional questions with ALL form fields and internship details
-      // Convert is_remote boolean to string to match Record<string, string> type
+      // Prepare additional questions with form fields
       const additionalQuestions: Record<string, string> = {
         linkedIn: data.linkedIn || "",
         portfolio: data.portfolio || "",
         whyInterested: data.whyInterested || "",
         relevantExperience: data.relevantExperience || "",
-        // Include comprehensive internship details for reference
+        // Include internship details for reference
         internshipTitle: internship.title || "",
         company: internship.company || "",
         location: internship.location || "",
         category: internship.category.toString() || "",
         salary: internship.salary || "",
         duration: internship.duration || "",
-        is_remote: internship.is_remote ? "true" : "false", // Convert boolean to string
+        is_remote: internship.is_remote ? "true" : "false",
         deadline: internship.deadline || "",
       };
       

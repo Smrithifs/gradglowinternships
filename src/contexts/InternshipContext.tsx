@@ -1,10 +1,10 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
-import type { Database } from "@/integrations/supabase/types";
 
 interface InternshipContextType {
   internships: Internship[];
@@ -171,7 +171,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('internships')
+        .from('internship_listings')
         .select('*');
       
       if (error) {
@@ -184,7 +184,27 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (data && data.length > 0) {
-        setInternships(data as unknown as Internship[]);
+        const typedData = data.map(item => ({
+          ...item,
+          id: item.id,
+          title: item.title,
+          company: item.company,
+          location: item.location,
+          category: item.category as InternshipCategory,
+          description: item.description,
+          requirements: item.requirements,
+          salary: item.salary,
+          duration: item.duration,
+          website: item.website,
+          logo_url: item.logo_url,
+          created_at: item.created_at,
+          deadline: item.deadline,
+          is_remote: item.is_remote,
+          company_description: item.company_description,
+          recruiter_id: "" // We don't track recruiter_id in new schema
+        })) as Internship[];
+        
+        setInternships(typedData);
       } else if (dummyInternships.length > 0) {
         console.log("No internships found in database. Using dummy internship data");
         populateDummyInternships();
@@ -200,17 +220,17 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const populateDummyInternships = async () => {
-    if (!user || user.role !== 'recruiter') {
-      const localDummyInternships = dummyInternships.map((intern, index) => ({
-        ...intern,
-        id: `dummy-${index}`,
-        created_at: new Date().toISOString(),
-        recruiter_id: 'dummy-recruiter'
-      })) as Internship[];
-      
-      setInternships(localDummyInternships);
-      return;
-    }
+    const localDummyInternships = dummyInternships.map((intern, index) => ({
+      ...intern,
+      id: `dummy-${index}`,
+      created_at: new Date().toISOString(),
+      recruiter_id: 'dummy-recruiter'
+    })) as Internship[];
+    
+    setInternships(localDummyInternships);
+    
+    // Only try to populate real database if we're connected to Supabase
+    if (!user) return;
     
     for (const internship of dummyInternships) {
       try {
@@ -221,20 +241,18 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           category: internship.category!.toString(),
           description: internship.description!,
           requirements: internship.requirements!,
-          salary: internship.salary,
+          salary: internship.salary || null,
           duration: internship.duration!,
-          website: internship.website,
-          logo_url: internship.logo_url,
+          website: internship.website || null,
+          logo_url: internship.logo_url || null,
           deadline: internship.deadline!,
           is_remote: internship.is_remote!,
-          recruiter_id: user!.id,
-          company_description: internship.company_description
+          company_description: internship.company_description || null
         };
         
-        // Use upsert instead of insert and cast to any to bypass type checking
         const { error } = await supabase
-          .from('internships')
-          .upsert([internshipToInsert as any]);
+          .from('internship_listings')
+          .upsert([internshipToInsert]);
           
         if (error) {
           console.error("Error inserting dummy internship:", error);
@@ -252,44 +270,43 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      let query;
-      
       if (user.role === 'student') {
-        query = supabase
+        const { data, error } = await supabase
           .from('applications')
           .select('*')
-          .eq('student_id', user.id as any); // Cast to any to bypass type checking
-      } else {
-        const { data: recruiterInterns } = await supabase
-          .from('internships')
-          .select('id')
-          .eq('recruiter_id', user.id as any); // Cast to any to bypass type checking
+          .eq('student_id', user.id);
           
-        if (recruiterInterns && recruiterInterns.length > 0) {
-          // Type assertion to ensure that we can access id property
-          const internshipIds = recruiterInterns.map(intern => (intern as any).id as string);
-          
-          // If there are internship IDs, query the applications
-          query = supabase
-            .from('applications')
-            .select('*')
-            .in('internship_id', internshipIds as any); // Cast to any to bypass type checking
-        } else {
-          setApplications([]);
-          setLoading(false);
+        if (error) {
+          console.error("Error fetching applications:", error);
           return;
         }
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        console.error("Error fetching applications:", error);
-        return;
-      }
 
-      if (data) {
-        setApplications(data as unknown as Application[]);
+        if (data) {
+          // Transform data to match our Application type
+          const transformedData = data.map(app => ({
+            id: app.id,
+            internship_id: app.internship_title, // Using title as a reference
+            student_id: app.student_id,
+            status: app.status as ApplicationStatus,
+            resume_url: app.resume_url || undefined,
+            cover_letter: app.cover_letter || undefined,
+            created_at: app.created_at,
+            additional_questions: {
+              linkedIn: app.linkedin_url || "",
+              portfolio: app.portfolio_url || "",
+              whyInterested: app.why_interested || "",
+              relevantExperience: app.relevant_experience || "",
+              internshipTitle: app.internship_title || "",
+              company: app.internship_company || "",
+            }
+          })) as Application[];
+          
+          setApplications(transformedData);
+        }
+      } else {
+        // For recruiters, we're now using a different approach since there's no recruiter_id
+        // This is simplified for now - further implementation would be needed for a full recruiter view
+        setApplications([]);
       }
     } catch (error) {
       console.error("Error fetching applications:", error);
@@ -320,8 +337,19 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const hasApplied = (internshipId: string) => {
     if (!user || user.role !== "student") return false;
     
-    return applications.some(
-      app => app.internship_id === internshipId && app.student_id === user.id
+    // For dummy internships
+    if (internshipId.startsWith('dummy-')) {
+      const internship = internships.find(i => i.id === internshipId);
+      if (!internship) return false;
+      
+      return applications.some(app => 
+        app.student_id === user.id && 
+        app.additional_questions?.internshipTitle === internship.title
+      );
+    }
+    
+    return applications.some(app => 
+      app.student_id === user.id && app.internship_id === internshipId
     );
   };
 
@@ -349,6 +377,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Internship not found");
       }
       
+      // Extract the additional questions data
+      const additionalQuestions = applicationData.additional_questions || {};
+      
       // Store application locally if it's a dummy internship
       if (internshipId.startsWith('dummy-')) {
         console.log("Handling dummy internship application");
@@ -357,9 +388,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           id: uuidv4(),
           internship_id: internshipId,
           student_id: user!.id,
-          resume_url: applicationData.resume_url || null,
-          cover_letter: applicationData.cover_letter || null,
-          additional_questions: applicationData.additional_questions || {},
+          resume_url: applicationData.resume_url || undefined,
+          cover_letter: applicationData.cover_letter || undefined,
+          additional_questions: additionalQuestions,
           status: ApplicationStatus.PENDING,
           created_at: new Date().toISOString(),
         };
@@ -376,20 +407,24 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // For real internships, submit to Supabase
+      // For real internships, submit to Supabase with the new schema
       const applicationToSubmit = {
-        internship_id: internshipId,
         student_id: user!.id,
+        student_name: user!.name || null,
+        internship_title: internship.title,
+        internship_company: internship.company,
         resume_url: applicationData.resume_url || null,
         cover_letter: applicationData.cover_letter || null,
-        additional_questions: applicationData.additional_questions || {},
+        linkedin_url: additionalQuestions.linkedIn || null,
+        portfolio_url: additionalQuestions.portfolio || null,
+        why_interested: additionalQuestions.whyInterested || null,
+        relevant_experience: additionalQuestions.relevantExperience || null,
         status: ApplicationStatus.PENDING
       };
       
-      // Use upsert instead of insert and cast to any to bypass type checking
       const { data, error } = await supabase
         .from('applications')
-        .upsert([applicationToSubmit as any])
+        .insert([applicationToSubmit])
         .select();
       
       if (error) {
@@ -398,7 +433,18 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data) {
-        const newApplication = data[0] as unknown as Application;
+        // Transform to our Application interface format
+        const newApplication: Application = {
+          id: data[0].id,
+          internship_id: internship.id,
+          student_id: user!.id,
+          status: ApplicationStatus.PENDING,
+          resume_url: applicationData.resume_url,
+          cover_letter: applicationData.cover_letter,
+          created_at: data[0].created_at,
+          additional_questions: additionalQuestions
+        };
+        
         setApplications([...applications, newApplication]);
         
         toast({
@@ -427,17 +473,26 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to post internships");
       }
       
-      // Prepare the internship data with the right types
+      // Prepare the internship data for the new schema
       const internshipToInsert = {
-        ...internship,
-        recruiter_id: user!.id,
-        category: internship.category.toString()
+        title: internship.title,
+        company: internship.company,
+        location: internship.location,
+        category: internship.category.toString(),
+        description: internship.description,
+        requirements: internship.requirements,
+        salary: internship.salary || null,
+        duration: internship.duration,
+        website: internship.website || null,
+        logo_url: internship.logo_url || null,
+        deadline: internship.deadline,
+        is_remote: internship.is_remote,
+        company_description: internship.company_description || null
       };
       
-      // Use upsert instead of insert and cast to any to bypass type checking
       const { data, error } = await supabase
-        .from('internships')
-        .upsert([internshipToInsert as any])
+        .from('internship_listings')
+        .insert([internshipToInsert])
         .select();
       
       if (error) {
@@ -445,7 +500,13 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data) {
-        const newInternship = data[0] as unknown as Internship;
+        const newInternship: Internship = {
+          ...internship,
+          id: data[0].id,
+          created_at: data[0].created_at,
+          recruiter_id: user.id // Keep for compatibility with interface
+        };
+        
         setInternships([...internships, newInternship]);
         
         toast({
@@ -475,8 +536,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       
       const { data, error } = await supabase
         .from('applications')
-        .update({ status } as any) // Cast to any to bypass type checking
-        .eq('id', applicationId as any) // Cast to any to bypass type checking
+        .update({ status })
+        .eq('id', applicationId)
         .select();
       
       if (error) {
