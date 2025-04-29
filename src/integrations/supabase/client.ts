@@ -29,7 +29,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Helper function to check connection status
 export const checkSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    // Use maybeSingle instead of select().count
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+      
     if (error) {
       console.error('Supabase connection error:', error);
       return false;

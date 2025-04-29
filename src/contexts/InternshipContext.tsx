@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -230,9 +231,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           company_description: internship.company_description
         };
         
+        // Insert a single object, not an array
         const { error } = await supabase
           .from('internships')
-          .insert([internshipToInsert]);
+          .insert(internshipToInsert);
           
         if (error) {
           console.error("Error inserting dummy internship:", error);
@@ -264,7 +266,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           .eq('recruiter_id', user.id);
           
         if (recruiterInterns && recruiterInterns.length > 0) {
-          const internshipIds = recruiterInterns.map(intern => intern.id);
+          const internshipIds = recruiterInterns.map(intern => intern.id as string);
           
           query = supabase
             .from('applications')
@@ -373,16 +375,19 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // For real internships, submit to Supabase
+      const applicationToSubmit = {
+        internship_id: internshipId,
+        student_id: user.id,
+        resume_url: applicationData.resume_url || null,
+        cover_letter: applicationData.cover_letter || null,
+        additional_questions: applicationData.additional_questions || {},
+        status: ApplicationStatus.PENDING
+      };
+      
+      // Insert a single object, not an array
       const { data, error } = await supabase
         .from('applications')
-        .insert([{
-          internship_id: internshipId,
-          student_id: user.id,
-          resume_url: applicationData.resume_url || null,
-          cover_letter: applicationData.cover_letter || null,
-          additional_questions: applicationData.additional_questions || {},
-          status: ApplicationStatus.PENDING
-        }])
+        .insert(applicationToSubmit)
         .select();
       
       if (error) {
@@ -420,12 +425,16 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to post internships");
       }
       
+      // Insert a single object, not an array
+      const internshipToInsert = {
+        ...internship,
+        recruiter_id: user.id,
+        category: internship.category.toString()
+      };
+      
       const { data, error } = await supabase
         .from('internships')
-        .insert([{
-          ...internship,
-          recruiter_id: user.id
-        }])
+        .insert(internshipToInsert)
         .select();
       
       if (error) {

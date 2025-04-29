@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile:', error);
@@ -142,14 +142,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (data.user) {
         // After signup, manually create the profile entry to ensure it exists
+        // Use proper Supabase types
+        const profileData = {
+          id: data.user.id,
+          role: role,
+          name: name,
+          email: email
+        };
+        
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert({
-            id: data.user.id,
-            role: role,
-            name: name,
-            email: email
-          }, { onConflict: 'id' });
+          .upsert(profileData);
           
         if (profileError) {
           console.error("Error creating profile:", profileError);

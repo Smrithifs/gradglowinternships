@@ -67,7 +67,8 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
       }
       
       // Prepare additional questions with ALL form fields and internship details
-      const additionalQuestions = {
+      // Convert is_remote boolean to string to match Record<string, string> type
+      const additionalQuestions: Record<string, string> = {
         linkedIn: data.linkedIn || "",
         portfolio: data.portfolio || "",
         whyInterested: data.whyInterested || "",
@@ -76,10 +77,10 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         internshipTitle: internship.title || "",
         company: internship.company || "",
         location: internship.location || "",
-        category: internship.category || "",
+        category: internship.category.toString() || "",
         salary: internship.salary || "",
         duration: internship.duration || "",
-        is_remote: internship.is_remote || false,
+        is_remote: internship.is_remote ? "true" : "false", // Convert boolean to string
         deadline: internship.deadline || "",
       };
       
