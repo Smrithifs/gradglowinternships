@@ -88,13 +88,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data) {
         console.log("User profile fetched:", data);
-        // Check properties exist before accessing them
+        // Fixed type checking issues - use optional chaining and type assertions
         setUser({
           id: userId,
           email: session?.user?.email || '',
-          role: (data?.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
-          name: data?.name || undefined,
-          avatar_url: data?.avatar_url || undefined
+          role: ((data as any)?.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
+          name: (data as any)?.name || undefined,
+          avatar_url: (data as any)?.avatar_url || undefined
         });
       }
       setLoading(false);
@@ -155,7 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert(profileData as any); // Cast to any to bypass TypeScript error
+          .upsert([profileData] as any); // Cast to any to bypass TypeScript error
           
         if (profileError) {
           console.error("Error creating profile:", profileError);

@@ -19,9 +19,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
   db: {
     schema: 'public'
-  },
-  // Add better debug logging
-  debug: true
+  }
+  // Removed debug property as it doesn't exist in SupabaseClientOptions
 });
 
 // Helper function to check connection status
