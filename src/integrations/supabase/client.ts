@@ -11,5 +11,29 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: localStorage
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'lovable-internship-app'
+    }
   }
 });
+
+// Helper function to check connection status
+export const checkSupabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
+    if (error) {
+      console.error('Supabase connection error:', error);
+      return false;
+    }
+    console.log('Supabase connection successful');
+    return true;
+  } catch (err) {
+    console.error('Failed to connect to Supabase:', err);
+    return false;
+  }
+};
+
+// Call this function to verify the connection
+checkSupabaseConnection();

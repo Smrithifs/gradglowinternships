@@ -338,14 +338,30 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         ...applicationData
       });
       
+      // Get the internship details to include them in the application
+      const internship = getInternshipById(internshipId);
+      if (!internship) {
+        throw new Error("Internship not found");
+      }
+      
+      // Make sure additional_questions includes internship details for reference
+      const updatedAdditionalQuestions = {
+        ...(applicationData.additional_questions || {}),
+        internshipTitle: internship.title,
+        companyName: internship.company,
+        internshipCategory: internship.category,
+        internshipLocation: internship.location,
+      };
+      
       const { data, error } = await supabase
         .from('applications')
         .insert([{
           internship_id: internshipId,
           student_id: user.id,
-          resume_url: applicationData.resume_url || "",
-          cover_letter: applicationData.cover_letter || "",
-          additional_questions: applicationData.additional_questions || {}
+          resume_url: applicationData.resume_url || null,
+          cover_letter: applicationData.cover_letter || null,
+          additional_questions: updatedAdditionalQuestions,
+          status: ApplicationStatus.PENDING
         }])
         .select();
       
@@ -370,6 +386,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         description: error.message || "An error occurred while applying.",
         variant: "destructive",
       });
+      throw error; // Re-throw so the form can handle it
     } finally {
       setLoading(false);
     }

@@ -36,9 +36,12 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
-  const { applyForInternship, loading } = useInternships();
+  const { applyForInternship, loading, getInternshipById } = useInternships();
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
+  
+  // Get internship details to store with application
+  const internship = getInternshipById(internshipId);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,6 +58,7 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
   const onSubmit = async (data: FormValues) => {
     try {
       console.log("Submitting form data:", data);
+      console.log("Internship being applied to:", internship);
       
       // Prepare additional questions
       const additionalQuestions = {
@@ -62,6 +66,11 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         portfolio: data.portfolio || "",
         whyInterested: data.whyInterested || "",
         relevantExperience: data.relevantExperience || "",
+        // Also store internship details for reference
+        internshipTitle: internship?.title || "",
+        company: internship?.company || "",
+        location: internship?.location || "",
+        category: internship?.category || "",
       };
       
       // Submit application with all fields (even if empty)
