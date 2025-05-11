@@ -19,7 +19,6 @@ interface InternshipContextProps {
   fetchApplications: () => Promise<void>;
   fetchRecruiterApplications: () => Promise<void>;
   deleteInternship: (id: string) => Promise<void>;
-  // Add the missing functions
   getInternshipById: (id: string) => Internship | null;
   hasApplied: (internshipId: string) => boolean;
   applyForInternship: (internshipId: string, applicationData: { resume_url?: string, cover_letter?: string, additional_questions?: Record<string, string> }) => Promise<void>;
@@ -41,13 +40,14 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const mapDbInternshipToInternship = (dbInternship: DbInternship): Internship => ({
     ...dbInternship,
     category: dbInternship.category as any, // Cast to enum
+    recruiter_id: dbInternship.recruiter_id || ""
   });
 
   // Helper function to transform database application to app application
-  const mapDbApplicationToApplication = (dbApp: DbApplication): Application => ({
+  const mapDbApplicationToApplication = (dbApp: DbApplication, internshipId: string = ""): Application => ({
     id: dbApp.id,
     student_id: dbApp.student_id,
-    internship_id: "", // We'll need to handle this specially
+    internship_id: internshipId, // Use the provided internship_id or default to empty string
     status: dbApp.status as ApplicationStatus,
     resume_url: dbApp.resume_url || undefined,
     cover_letter: dbApp.cover_letter || undefined,
@@ -73,7 +73,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships = data.map(mapDbInternshipToInternship);
+      const transformedInternships = data.map((item: any) => mapDbInternshipToInternship({
+        ...item,
+        recruiter_id: item.recruiter_id || ""
+      }));
       setInternships(transformedInternships);
     } catch (err) {
       console.error("Error fetching internships:", err);
@@ -97,7 +100,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships = data.map(mapDbInternshipToInternship);
+      const transformedInternships = data.map((item: any) => mapDbInternshipToInternship({
+        ...item,
+        recruiter_id: item.recruiter_id || ""
+      }));
       setRecruiterInternships(transformedInternships);
     } catch (err) {
       console.error("Error fetching recruiter internships:", err);
@@ -123,11 +129,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       // For student applications, we need to derive internship_id
       // For simplicity in this implementation, we'll use the application ID
       // In a real app, you'd store and fetch the actual internship_id
-      const transformedApplications: Application[] = data.map(app => {
-        const appData = mapDbApplicationToApplication(app as DbApplication);
-        // Use the application ID as a proxy for internship_id (you'd use the real relation in production)
-        appData.internship_id = app.id; 
-        return appData;
+      const transformedApplications: Application[] = data.map((app: any) => {
+        return mapDbApplicationToApplication(app as DbApplication, app.id);
       });
       
       setStudentApplications(transformedApplications);
@@ -167,11 +170,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedApplications: Application[] = data.map(app => {
-        const appData = mapDbApplicationToApplication(app as DbApplication);
-        // Use the application ID as a proxy for internship_id
-        appData.internship_id = app.id;
-        return appData;
+      const transformedApplications: Application[] = data.map((app: any) => {
+        return mapDbApplicationToApplication(app as DbApplication, app.id);
       });
       
       setRecruiterApplications(transformedApplications);
@@ -209,7 +209,11 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Update the local state with the new internship
-      const transformedInternship = mapDbInternshipToInternship(data);
+      const transformedInternship = mapDbInternshipToInternship({
+        ...data,
+        recruiter_id: data.recruiter_id || user.id
+      });
+      
       setRecruiterInternships(prev => [transformedInternship, ...prev]);
       setInternships(prev => [transformedInternship, ...prev]);
       
@@ -438,7 +442,6 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         fetchApplications,
         fetchRecruiterApplications,
         deleteInternship,
-        // Added missing functions
         getInternshipById,
         hasApplied,
         applyForInternship
