@@ -27,7 +27,7 @@ export const checkSupabaseConnection = async () => {
   try {
     // Use maybeSingle instead of select().count
     const { data, error } = await supabase
-      .from('applications')
+      .from('internship_listings')
       .select('*')
       .limit(1)
       .maybeSingle();
