@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Session, AuthResponse } from "@supabase/supabase-js";
+import { Session, AuthResponse, AuthError } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
@@ -139,7 +139,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
-      throw error;
+      // Create and return a properly structured AuthResponse object for error case
+      const authError: AuthError = {
+        message: error.message || "An error occurred during sign in.",
+        name: "AuthError",
+        status: 500
+      };
+      return {
+        data: { user: null, session: null },
+        error: authError
+      };
     }
   };
 
@@ -206,7 +215,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
-      throw error;
+      // Create and return a properly structured AuthResponse object for error case
+      const authError: AuthError = {
+        message: error.message || "An error occurred during sign up.",
+        name: "AuthError",
+        status: 500
+      };
+      return {
+        data: { user: null, session: null },
+        error: authError
+      };
     }
   };
 
