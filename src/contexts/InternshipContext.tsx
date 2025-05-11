@@ -1,9 +1,44 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Internship, UserRole, Application, ApplicationStatus, DbInternship, DbApplication } from "@/types";
+import { Internship, UserRole, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Define types for database results to avoid deep type instantiation issues
+type DbInternshipRow = {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  category: string; // Will be cast to enum
+  description: string;
+  requirements: string[];
+  salary: string | null;
+  duration: string;
+  website: string | null;
+  logo_url: string | null;
+  created_at: string;
+  deadline: string;
+  is_remote: boolean;
+  company_description: string | null;
+  recruiter_id: string;
+};
+
+type DbApplicationRow = {
+  id: string;
+  student_id: string;
+  created_at: string;
+  portfolio_url: string | null;
+  why_interested: string | null;
+  relevant_experience: string | null;
+  status: string;
+  student_name: string | null;
+  internship_title: string;
+  internship_company: string;
+  resume_url: string | null;
+  cover_letter: string | null;
+  linkedin_url: string | null;
+};
 
 interface InternshipContextProps {
   loading: boolean;
@@ -37,7 +72,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   // Helper function to transform database internship to app internship
-  const mapDbInternshipToInternship = (item: DbInternship): Internship => ({
+  const mapDbInternshipToInternship = (item: DbInternshipRow): Internship => ({
     id: item.id,
     title: item.title,
     company: item.company,
@@ -57,10 +92,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   });
 
   // Helper function to transform database application to app application
-  const mapDbApplicationToApplication = (dbApp: DbApplication, internshipId: string = ""): Application => ({
+  const mapDbApplicationToApplication = (dbApp: DbApplicationRow): Application => ({
     id: dbApp.id,
     student_id: dbApp.student_id,
-    internship_id: internshipId,
+    internship_id: "", // Will be populated when needed
     status: dbApp.status as ApplicationStatus,
     resume_url: dbApp.resume_url || undefined,
     cover_letter: dbApp.cover_letter || undefined,
@@ -86,7 +121,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternship) => 
+      const transformedInternships: Internship[] = data.map((item: DbInternshipRow) => 
         mapDbInternshipToInternship(item)
       );
       
@@ -113,7 +148,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternship) => 
+      const transformedInternships: Internship[] = data.map((item: DbInternshipRow) => 
         mapDbInternshipToInternship(item)
       );
       
@@ -140,8 +175,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       // Transform applications for student view
-      const transformedApplications: Application[] = data.map((app: DbApplication) => 
-        mapDbApplicationToApplication(app, app.id)
+      const transformedApplications: Application[] = data.map((app: DbApplicationRow) => 
+        mapDbApplicationToApplication(app)
       );
       
       setStudentApplications(transformedApplications);
@@ -181,8 +216,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform applications for recruiter view
-      const transformedApplications: Application[] = data.map((app: DbApplication) => 
-        mapDbApplicationToApplication(app, app.id)
+      const transformedApplications: Application[] = data.map((app: DbApplicationRow) => 
+        mapDbApplicationToApplication(app)
       );
       
       setRecruiterApplications(transformedApplications);
@@ -392,7 +427,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Add to local state with internship_id filled in
+      // Add to local state
       const newApplication: Application = {
         id: data.id,
         internship_id: internshipId,
