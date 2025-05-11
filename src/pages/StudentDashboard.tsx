@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +13,7 @@ import { format } from "date-fns";
 
 const StudentDashboard = () => {
   const { isAuthenticated, user } = useAuth();
-  const { internships, userApplications } = useInternships();
+  const { internships, studentApplications } = useInternships();
   const [activeTab, setActiveTab] = useState("applications");
   
   // Redirect if not authenticated or not a student
@@ -23,7 +22,7 @@ const StudentDashboard = () => {
   }
   
   // Get internships the student has applied to
-  const appliedInternships = userApplications.map(app => {
+  const appliedInternships = studentApplications.map(app => {
     const internship = internships.find(i => i.id === app.internship_id);
     return {
       ...app,
@@ -35,7 +34,7 @@ const StudentDashboard = () => {
   const getRecommendedInternships = () => {
     // Filter out internships the student has already applied to
     const availableInternships = internships
-      .filter(internship => !userApplications.some(app => app.internship_id === internship.id));
+      .filter(internship => !studentApplications.some(app => app.internship_id === internship.id));
     
     // Shuffle array to get random recommendations
     const shuffled = [...availableInternships].sort(() => 0.5 - Math.random());
@@ -125,19 +124,19 @@ const StudentDashboard = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Applications</span>
-                  <span className="font-semibold">{userApplications.length}</span>
+                  <span className="font-semibold">{studentApplications.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Pending</span>
-                  <span className="font-semibold">{userApplications.filter(app => app.status === ApplicationStatus.PENDING).length}</span>
+                  <span className="font-semibold">{studentApplications.filter(app => app.status === ApplicationStatus.PENDING).length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Under Review</span>
-                  <span className="font-semibold">{userApplications.filter(app => app.status === ApplicationStatus.REVIEWING).length}</span>
+                  <span className="font-semibold">{studentApplications.filter(app => app.status === ApplicationStatus.REVIEWING).length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Accepted</span>
-                  <span className="font-semibold">{userApplications.filter(app => app.status === ApplicationStatus.ACCEPTED).length}</span>
+                  <span className="font-semibold">{studentApplications.filter(app => app.status === ApplicationStatus.ACCEPTED).length}</span>
                 </div>
               </CardContent>
             </Card>
@@ -235,7 +234,6 @@ const StudentDashboard = () => {
                       <p>{user.email}</p>
                     </div>
                     
-                    {/* In a real app, there would be more profile data here */}
                     <div className="col-span-2 mt-4">
                       <p className="text-sm text-gray-500">Bio</p>
                       <p className="text-gray-600 italic">Profile information would be editable in a complete application.</p>

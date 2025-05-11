@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -72,4 +73,40 @@ export interface Application {
     internshipTitle?: string;
     company?: string;
   };
+}
+
+// Database types to handle differences between our app models and database schema
+export interface DbInternship {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  category: string;
+  description: string;
+  requirements: string[];
+  salary: string | null;
+  duration: string;
+  website: string | null;
+  logo_url: string | null;
+  created_at: string;
+  deadline: string;
+  is_remote: boolean;
+  company_description: string | null;
+  recruiter_id: string;
+}
+
+export interface DbApplication {
+  id: string;
+  student_id: string;
+  created_at: string;
+  portfolio_url: string | null;
+  why_interested: string | null;
+  relevant_experience: string | null;
+  status: string;
+  student_name: string | null;
+  internship_title: string;
+  internship_company: string;
+  resume_url: string | null;
+  cover_letter: string | null;
+  linkedin_url: string | null;
 }
