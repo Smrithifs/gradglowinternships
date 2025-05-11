@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +81,14 @@ const StudentDashboard = () => {
                   }`}
                 >
                   My Applications
+                </button>
+                <button 
+                  onClick={() => setActiveTab("browse")}
+                  className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
+                    activeTab === "browse" ? "bg-gradMid/10 text-gradMid" : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  Browse Internships
                 </button>
                 <button 
                   onClick={() => setActiveTab("recommended")}
@@ -166,6 +174,30 @@ const StudentDashboard = () => {
                     </button>
                   </div>
                 )}
+              </div>
+            )}
+            
+            {activeTab === "browse" && (
+              <div>
+                <h1 className="text-2xl font-bold mb-6">Browse Internships</h1>
+                
+                <div className="mb-6">
+                  <Link to="/internships" className="text-gradMid hover:underline inline-flex items-center">
+                    <span>View all internships with advanced filters</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {internships.slice(0, 6).map(internship => (
+                    <InternshipCard 
+                      key={internship.id} 
+                      internship={internship} 
+                    />
+                  ))}
+                </div>
               </div>
             )}
             
