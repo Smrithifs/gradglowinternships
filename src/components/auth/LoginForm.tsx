@@ -43,27 +43,42 @@ const LoginForm = () => {
       const { data, error } = await signIn(values.email, values.password);
       
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login failed",
-          description: error.message,
+          description: error.message || "Invalid login credentials.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
       
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      
-      // Redirect based on user role
-      if (data?.user?.user_metadata?.role === UserRole.STUDENT) {
-        navigate('/dashboard');
-      } else if (data?.user?.user_metadata?.role === UserRole.RECRUITER) {
-        navigate('/recruiter-dashboard');
-      } else {
-        navigate('/internships');
+      if (!data.user) {
+        toast({
+          title: "Login failed",
+          description: "User not found.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
       }
+
+      console.log("Login successful, user:", data.user);
+      
+      // Give a little time for the auth state to update
+      setTimeout(() => {
+        // Redirect based on user role from metadata
+        if (data.user?.user_metadata?.role === UserRole.STUDENT) {
+          navigate('/dashboard');
+        } else if (data.user?.user_metadata?.role === UserRole.RECRUITER) {
+          navigate('/recruiter-dashboard');
+        } else {
+          navigate('/internships');
+        }
+        
+        setIsLoading(false);
+      }, 500);
+      
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -71,7 +86,6 @@ const LoginForm = () => {
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

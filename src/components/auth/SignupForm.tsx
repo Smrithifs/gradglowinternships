@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserRole } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -32,6 +33,8 @@ const FormSchema = z.object({
 const SignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -48,14 +51,53 @@ const SignupForm = () => {
     setIsLoading(true);
     console.log("Form submitted with values:", values);
     try {
-      await signUp(values.email, values.password, values.role, values.name);
-      // Navigation and profile creation are handled in the AuthContext
-    } catch (error) {
+      const { data, error } = await signUp(values.email, values.password, values.role, values.name);
+      
+      if (error) {
+        console.error("Signup error:", error);
+        toast({
+          title: "Sign up failed",
+          description: error.message || "There was a problem signing you up.",
+          variant: "destructive",
+        });
+      } else {
+        setIsVerificationSent(true);
+        toast({
+          title: "Verification email sent",
+          description: "Please check your email and click on the verification link.",
+        });
+      }
+    } catch (error: any) {
       console.error("Signup error:", error);
+      toast({
+        title: "Sign up failed",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isVerificationSent) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-2xl font-bold mb-4">Verification Email Sent</h2>
+        <p className="mb-6">
+          We've sent a verification email to your inbox. Please check your email and click on the verification link to complete your registration.
+        </p>
+        <p className="text-gray-600">
+          Didn't receive an email?{" "}
+          <button 
+            onClick={() => form.handleSubmit(onSubmit)()}
+            className="text-purple-600 hover:underline"
+          >
+            Resend verification email
+          </button>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>

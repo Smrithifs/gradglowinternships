@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (email: string, password: string, role: UserRole, name: string) => Promise<void>;
+  signUp: (email: string, password: string, role: UserRole, name: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -97,6 +97,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: profileData.name || undefined,
           avatar_url: profileData.avatar_url || undefined
         });
+      } else {
+        console.error('No profile found for user:', userId);
       }
       setLoading(false);
     } catch (error) {
@@ -115,15 +117,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
 
+      if (response.error) {
+        toast({
+          title: "Login failed",
+          description: response.error.message,
+          variant: "destructive",
+        });
+      } else if (response.data.user) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
+      }
+
       return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "An error occurred during sign in.",
+        variant: "destructive",
+      });
       setLoading(false);
       throw error;
     }
   };
 
-  const signUp = async (email: string, password: string, role: UserRole, name: string) => {
+  const signUp = async (email: string, password: string, role: UserRole, name: string): Promise<AuthResponse> => {
     setLoading(true);
     
     try {
@@ -136,11 +156,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             role,
             name
           },
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: `${window.location.origin}/internships`
         }
       });
 
       if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message || "An error occurred during sign up.",
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -159,17 +184,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
+          toast({
+            title: "Profile creation error",
+            description: "Your account was created but there was an error setting up your profile.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Account created!",
+            description: "Please check your email for verification link.",
+          });
         }
-          
-        // Login the user automatically after signup
-        await signIn(email, password);
-        
-        toast({
-          title: "Account created!",
-          description: "Your account has been successfully created.",
-        });
       }
       
+      return { data, error };
     } catch (error: any) {
       console.error("Error signing up:", error);
       toast({
@@ -178,6 +206,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
+      throw error;
     }
   };
 
