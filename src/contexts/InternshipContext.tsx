@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from "react
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, deduplicateInternshipListings, addNewInternshipListings } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
 interface InternshipContextType {
@@ -26,6 +26,49 @@ export const useInternships = () => {
     throw new Error("useInternships must be used within an InternshipProvider");
   }
   return context;
+};
+
+// This mapping function helps prevent deep type instantiation issues
+const mapDbInternshipToInternship = (item: any): Internship => {
+  return {
+    id: item.id,
+    title: item.title,
+    company: item.company,
+    location: item.location,
+    category: item.category as InternshipCategory,
+    description: item.description,
+    requirements: item.requirements,
+    salary: item.salary,
+    duration: item.duration,
+    website: item.website,
+    logo_url: item.logo_url,
+    created_at: item.created_at,
+    deadline: item.deadline,
+    is_remote: item.is_remote,
+    company_description: item.company_description,
+    recruiter_id: item.recruiter_id || "" // Add default value to prevent undefined
+  };
+};
+
+// This mapping function helps prevent deep type instantiation issues
+const mapDbApplicationToApplication = (app: any): Application => {
+  return {
+    id: app.id,
+    internship_id: app.internship_title, // Using title as a reference
+    student_id: app.student_id,
+    status: app.status as ApplicationStatus,
+    resume_url: app.resume_url || undefined,
+    cover_letter: app.cover_letter || undefined,
+    created_at: app.created_at,
+    additional_questions: {
+      linkedIn: app.linkedin_url || "",
+      portfolio: app.portfolio_url || "",
+      whyInterested: app.why_interested || "",
+      relevantExperience: app.relevant_experience || "",
+      internshipTitle: app.internship_title || "",
+      company: app.internship_company || "",
+    }
+  };
 };
 
 const dummyInternships: Partial<Internship>[] = [
@@ -264,7 +307,15 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    fetchInternships();
+    // Run deduplication on component mount
+    const initializeInternships = async () => {
+      // First deduplicate existing listings
+      await deduplicateInternshipListings();
+      // Then fetch internships
+      await fetchInternships();
+    };
+    
+    initializeInternships();
 
     if (isAuthenticated && user) {
       fetchApplications();
@@ -288,26 +339,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (data && data.length > 0) {
-        const typedData = data.map(item => ({
-          ...item,
-          id: item.id,
-          title: item.title,
-          company: item.company,
-          location: item.location,
-          category: item.category as InternshipCategory,
-          description: item.description,
-          requirements: item.requirements,
-          salary: item.salary,
-          duration: item.duration,
-          website: item.website,
-          logo_url: item.logo_url,
-          created_at: item.created_at,
-          deadline: item.deadline,
-          is_remote: item.is_remote,
-          company_description: item.company_description,
-          recruiter_id: "" // We don't track recruiter_id in new schema
-        })) as Internship[];
-        
+        // Use our mapping function to prevent deep type instantiation
+        const typedData = data.map(item => mapDbInternshipToInternship(item));
         setInternships(typedData);
       } else if (dummyInternships.length > 0) {
         console.log("No internships found in database. Using dummy internship data");
@@ -366,6 +399,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     
+    // After populating, run deduplication and add new diverse listings
+    await deduplicateInternshipListings();
+    await addNewInternshipListings();
+    // Fetch the updated listings
     fetchInternships();
   };
 
@@ -386,25 +423,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (data) {
-          // Transform data to match our Application type
-          const transformedData = data.map(app => ({
-            id: app.id,
-            internship_id: app.internship_title, // Using title as a reference
-            student_id: app.student_id,
-            status: app.status as ApplicationStatus,
-            resume_url: app.resume_url || undefined,
-            cover_letter: app.cover_letter || undefined,
-            created_at: app.created_at,
-            additional_questions: {
-              linkedIn: app.linkedin_url || "",
-              portfolio: app.portfolio_url || "",
-              whyInterested: app.why_interested || "",
-              relevantExperience: app.relevant_experience || "",
-              internshipTitle: app.internship_title || "",
-              company: app.internship_company || "",
-            }
-          })) as Application[];
-          
+          // Use our mapping function to prevent deep type instantiation
+          const transformedData = data.map(app => mapDbApplicationToApplication(app));
           setApplications(transformedData);
         }
       } else {
