@@ -53,12 +53,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session);
+        setSession(session);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error getting session:", error);
         setLoading(false);
       }
     };
@@ -72,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching user profile for:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -100,13 +107,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           avatar_url: profileData.avatar_url || undefined
         });
         
+        console.log("Setting user with role:", userRole);
+        
         // Redirect to appropriate dashboard if on a general page
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login' || currentPath === '/signup') {
           setTimeout(() => {
-            navigate(userRole === UserRole.STUDENT ? '/dashboard' : '/recruiter-dashboard');
+            if (userRole === UserRole.RECRUITER) {
+              console.log("Redirecting to recruiter dashboard");
+              navigate('/recruiter-dashboard');
+            } else {
+              console.log("Redirecting to student dashboard");
+              navigate('/dashboard');
+            }
           }, 0);
         }
+      } else {
+        console.log("No profile found for user:", userId);
       }
       setLoading(false);
     } catch (error) {
@@ -126,9 +143,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (response.error) {
+        console.error("Sign in error:", response.error);
         throw response.error;
       }
       
+      // Authentication state change will handle the rest
       return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
@@ -149,12 +168,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             role,
             name
-          },
-          emailRedirectTo: window.location.origin
+          }
         }
       });
 
       if (error) {
+        console.error("Sign up error:", error);
         throw error;
       }
       
@@ -171,7 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert([profileData]);
+          .upsert([profileData], { onConflict: 'id' });
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
@@ -187,8 +206,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Account created!",
           description: "Your account has been successfully created.",
         });
-        
-        // Navigation will be handled by the auth state change listener
       }
       
     } catch (error: any) {
