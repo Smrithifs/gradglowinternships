@@ -24,7 +24,7 @@ const FormSchema = z.object({
 });
 
 const LoginForm = () => {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -48,7 +48,6 @@ const LoginForm = () => {
           description: error.message,
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
       
@@ -57,8 +56,14 @@ const LoginForm = () => {
         description: "Welcome back!",
       });
       
-      // Auth context will handle redirection based on user role
-      console.log("Login successful, Auth context will handle redirection");
+      // Redirect based on user role
+      if (data?.user?.user_metadata?.role === UserRole.STUDENT) {
+        navigate('/dashboard');
+      } else if (data?.user?.user_metadata?.role === UserRole.RECRUITER) {
+        navigate('/recruiter-dashboard');
+      } else {
+        navigate('/internships');
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -66,6 +71,7 @@ const LoginForm = () => {
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

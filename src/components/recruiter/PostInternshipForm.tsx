@@ -32,18 +32,18 @@ interface PostInternshipFormProps {
 }
 
 const internshipSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
-  company: z.string().min(1, { message: "Company name is required" }),
-  location: z.string().min(1, { message: "Location is required" }),
+  title: z.string().min(3, { message: "Title must be at least 3 characters" }),
+  company: z.string().min(2, { message: "Company name is required" }),
+  location: z.string().min(2, { message: "Location is required" }),
   category: z.nativeEnum(InternshipCategory),
-  description: z.string().min(1, { message: "Description is required" }),
-  requirements: z.string().optional().default(""),
-  salary: z.string().optional().default(""),
-  duration: z.string().optional().default(""),
-  deadline: z.string().optional().default(""),
+  description: z.string().min(20, { message: "Description must be at least 20 characters" }),
+  requirements: z.string().min(10, { message: "Requirements must be at least 10 characters" }),
+  salary: z.string().optional(),
+  duration: z.string().min(1, { message: "Duration is required" }),
+  deadline: z.string().min(1, { message: "Application deadline is required" }),
   website: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
   logo_url: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal("")),
-  company_description: z.string().optional().default(""),
+  company_description: z.string().optional(),
   is_remote: z.boolean().default(false),
 });
 
@@ -76,11 +76,13 @@ const PostInternshipForm = ({ onSuccess }: PostInternshipFormProps) => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // Transform requirements string to array (or empty array if requirements is empty)
+      // Transform requirements string to array
       const requirementsArray = data.requirements
-        ? data.requirements.split("\n").map(req => req.trim()).filter(req => req.length > 0)
-        : [];
+        .split("\n")
+        .map(req => req.trim())
+        .filter(req => req.length > 0);
       
+      // Here's the fix: Ensure all required properties are provided
       await createInternship({
         title: data.title,
         company: data.company,
@@ -88,12 +90,12 @@ const PostInternshipForm = ({ onSuccess }: PostInternshipFormProps) => {
         category: data.category,
         description: data.description,
         requirements: requirementsArray,
-        salary: data.salary || null,
-        duration: data.duration || "3 months",
-        deadline: data.deadline ? new Date(data.deadline).toISOString() : new Date(defaultDeadline).toISOString(),
-        website: data.website || null,
-        logo_url: data.logo_url || null,
-        company_description: data.company_description || null,
+        salary: data.salary,
+        duration: data.duration,
+        deadline: new Date(data.deadline).toISOString(),
+        website: data.website || undefined,
+        logo_url: data.logo_url || undefined,
+        company_description: data.company_description,
         is_remote: data.is_remote,
       });
       
@@ -201,7 +203,7 @@ const PostInternshipForm = ({ onSuccess }: PostInternshipFormProps) => {
             name="duration"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Duration (Optional)</FormLabel>
+                <FormLabel>Duration*</FormLabel>
                 <FormControl>
                   <Input placeholder="e.g., 3 months" {...field} />
                 </FormControl>
@@ -234,7 +236,7 @@ const PostInternshipForm = ({ onSuccess }: PostInternshipFormProps) => {
           name="requirements"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Requirements (Optional)</FormLabel>
+              <FormLabel>Requirements*</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="List requirements, each on a new line. For example:
@@ -274,7 +276,7 @@ Good communication skills"
             name="deadline"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Application Deadline (Optional)</FormLabel>
+                <FormLabel>Application Deadline*</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>

@@ -57,8 +57,12 @@ const SignupForm = () => {
         description: `Welcome to GradGlow, ${values.name}! Your account has been created.`,
       });
       
-      // Navigation is handled by the auth context now
-      console.log("Signup successful, Auth context will handle redirection");
+      // Navigate based on role - this is handled by auth context, but just in case
+      const redirectPath = values.role === UserRole.RECRUITER 
+        ? "/recruiter-dashboard" 
+        : "/dashboard";
+      
+      navigate(redirectPath);
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
@@ -66,6 +70,7 @@ const SignupForm = () => {
         description: error.message || "An error occurred during signup.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

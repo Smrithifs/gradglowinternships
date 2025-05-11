@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+
+import { useState, useMemo } from "react";
 import Navbar from "@/components/navigation/Navbar";
 import Footer from "@/components/navigation/Footer";
 import InternshipCard from "@/components/internships/InternshipCard";
@@ -19,14 +20,14 @@ const InternshipsPage = () => {
   const location = useLocation();
   
   // Extract category from URL if present
-  useEffect(() => {
+  useState(() => {
     const params = new URLSearchParams(location.search);
     const category = params.get("category");
     
     if (category) {
       setFilters(prev => ({ ...prev, category }));
     }
-  }, [location.search]);
+  });
 
   const filteredInternships = useMemo(() => {
     return internships.filter((internship: Internship) => {
