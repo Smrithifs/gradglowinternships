@@ -33,18 +33,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("AuthProvider initialized");
-    
     // Set up the auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log("Auth state changed:", event, currentSession?.user?.id);
-        setSession(currentSession);
+      (event, session) => {
+        console.log("Auth state changed:", event, session);
+        setSession(session);
         
-        if (currentSession?.user) {
+        if (session?.user) {
           // Fetch the user profile from profiles table
           setTimeout(() => {
-            fetchUserProfile(currentSession.user.id);
+            fetchUserProfile(session.user.id);
           }, 0);
         } else {
           setUser(null);
@@ -55,14 +53,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     const initSession = async () => {
-      console.log("Checking for existing session");
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      console.log("Existing session:", currentSession?.user?.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
       
-      setSession(currentSession);
-      
-      if (currentSession?.user) {
-        await fetchUserProfile(currentSession.user.id);
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
       } else {
         setLoading(false);
       }
@@ -77,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log("Fetching user profile for:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -103,8 +97,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: profileData.name || undefined,
           avatar_url: profileData.avatar_url || undefined
         });
-      } else {
-        console.log("No user profile found for:", userId);
       }
       setLoading(false);
     } catch (error) {
@@ -123,12 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
 
-      console.log("Sign in response:", response);
-      
-      if (response.error) {
-        setLoading(false);
-      }
-      
       return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
@@ -149,7 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             role,
             name
-          }
+          },
+          emailRedirectTo: window.location.origin
         }
       });
 
@@ -172,18 +159,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-        } else {
-          console.log("Profile created successfully");
         }
           
         // Login the user automatically after signup
-        const signInResponse = await signIn(email, password);
-        
-        if (signInResponse.error) {
-          console.error("Error signing in after signup:", signInResponse.error);
-        } else {
-          console.log("Successfully signed in after signup");
-        }
+        await signIn(email, password);
         
         toast({
           title: "Account created!",

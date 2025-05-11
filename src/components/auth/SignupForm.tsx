@@ -17,7 +17,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserRole } from "@/types";
-import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -33,7 +32,6 @@ const FormSchema = z.object({
 const SignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -52,13 +50,8 @@ const SignupForm = () => {
     try {
       await signUp(values.email, values.password, values.role, values.name);
       // Navigation and profile creation are handled in the AuthContext
-    } catch (error: any) {
+    } catch (error) {
       console.error("Signup error:", error);
-      toast({
-        title: "Sign up failed",
-        description: error.message || "An error occurred during sign up.",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }

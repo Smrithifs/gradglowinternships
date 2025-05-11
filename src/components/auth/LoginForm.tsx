@@ -24,7 +24,7 @@ const FormSchema = z.object({
 });
 
 const LoginForm = () => {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,28 +40,23 @@ const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     setIsLoading(true);
     try {
-      console.log("Submitting login form with:", values.email);
       const { data, error } = await signIn(values.email, values.password);
       
       if (error) {
-        console.error("Login error response:", error);
         toast({
           title: "Login failed",
           description: error.message,
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
-      
-      console.log("Login successful, user data:", data?.user);
       
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
       
-      // Redirect based on user role from user_metadata
+      // Redirect based on user role
       if (data?.user?.user_metadata?.role === UserRole.STUDENT) {
         navigate('/dashboard');
       } else if (data?.user?.user_metadata?.role === UserRole.RECRUITER) {
@@ -70,7 +65,7 @@ const LoginForm = () => {
         navigate('/internships');
       }
     } catch (error: any) {
-      console.error("Login error exception:", error);
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Something went wrong. Please try again.",
