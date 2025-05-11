@@ -37,14 +37,27 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   // Helper function to transform database internship to app internship
-  const mapDbInternshipToInternship = (dbInternship: any): Internship => ({
-    ...dbInternship,
-    category: dbInternship.category as any, // Cast to enum
-    recruiter_id: dbInternship.recruiter_id || ""
+  const mapDbInternshipToInternship = (item: DbInternship): Internship => ({
+    id: item.id,
+    title: item.title,
+    company: item.company,
+    location: item.location,
+    category: item.category as any, // Cast to enum
+    description: item.description,
+    requirements: item.requirements,
+    salary: item.salary,
+    duration: item.duration,
+    website: item.website,
+    logo_url: item.logo_url,
+    created_at: item.created_at,
+    deadline: item.deadline,
+    is_remote: item.is_remote,
+    company_description: item.company_description,
+    recruiter_id: item.recruiter_id
   });
 
   // Helper function to transform database application to app application
-  const mapDbApplicationToApplication = (dbApp: any, internshipId: string = ""): Application => ({
+  const mapDbApplicationToApplication = (dbApp: DbApplication, internshipId: string = ""): Application => ({
     id: dbApp.id,
     student_id: dbApp.student_id,
     internship_id: internshipId,
@@ -73,24 +86,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternship) => ({
-        id: item.id,
-        title: item.title,
-        company: item.company,
-        location: item.location,
-        category: item.category as any,
-        description: item.description,
-        requirements: item.requirements,
-        salary: item.salary,
-        duration: item.duration,
-        website: item.website,
-        logo_url: item.logo_url,
-        created_at: item.created_at,
-        deadline: item.deadline,
-        is_remote: item.is_remote,
-        company_description: item.company_description,
-        recruiter_id: item.recruiter_id
-      }));
+      const transformedInternships: Internship[] = data.map((item: DbInternship) => 
+        mapDbInternshipToInternship(item)
+      );
       
       setInternships(transformedInternships);
     } catch (err) {
@@ -115,24 +113,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternship) => ({
-        id: item.id,
-        title: item.title,
-        company: item.company,
-        location: item.location,
-        category: item.category as any,
-        description: item.description,
-        requirements: item.requirements,
-        salary: item.salary,
-        duration: item.duration,
-        website: item.website,
-        logo_url: item.logo_url,
-        created_at: item.created_at,
-        deadline: item.deadline,
-        is_remote: item.is_remote,
-        company_description: item.company_description,
-        recruiter_id: item.recruiter_id
-      }));
+      const transformedInternships: Internship[] = data.map((item: DbInternship) => 
+        mapDbInternshipToInternship(item)
+      );
       
       setRecruiterInternships(transformedInternships);
     } catch (err) {
@@ -157,23 +140,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       // Transform applications for student view
-      const transformedApplications: Application[] = data.map((app: DbApplication) => ({
-        id: app.id,
-        student_id: app.student_id,
-        internship_id: app.id, // Using app ID as internship_id for simplicity
-        status: app.status as ApplicationStatus,
-        resume_url: app.resume_url || undefined,
-        cover_letter: app.cover_letter || undefined,
-        created_at: app.created_at,
-        additional_questions: {
-          linkedIn: app.linkedin_url || undefined,
-          portfolio: app.portfolio_url || undefined,
-          whyInterested: app.why_interested || undefined,
-          relevantExperience: app.relevant_experience || undefined,
-          internshipTitle: app.internship_title,
-          company: app.internship_company
-        }
-      }));
+      const transformedApplications: Application[] = data.map((app: DbApplication) => 
+        mapDbApplicationToApplication(app, app.id)
+      );
       
       setStudentApplications(transformedApplications);
     } catch (err) {
@@ -212,23 +181,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform applications for recruiter view
-      const transformedApplications: Application[] = data.map((app: DbApplication) => ({
-        id: app.id,
-        student_id: app.student_id,
-        internship_id: app.id, // Using app ID as internship_id for simplicity
-        status: app.status as ApplicationStatus,
-        resume_url: app.resume_url || undefined,
-        cover_letter: app.cover_letter || undefined,
-        created_at: app.created_at,
-        additional_questions: {
-          linkedIn: app.linkedin_url || undefined,
-          portfolio: app.portfolio_url || undefined,
-          whyInterested: app.why_interested || undefined,
-          relevantExperience: app.relevant_experience || undefined,
-          internshipTitle: app.internship_title,
-          company: app.internship_company
-        }
-      }));
+      const transformedApplications: Application[] = data.map((app: DbApplication) => 
+        mapDbApplicationToApplication(app, app.id)
+      );
       
       setRecruiterApplications(transformedApplications);
     } catch (err) {
@@ -265,11 +220,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Update the local state with the new internship
-      const transformedInternship: Internship = {
+      const transformedInternship: Internship = mapDbInternshipToInternship({
         ...data,
-        category: data.category as any,
-        recruiter_id: data.recruiter_id || user.id
-      };
+        recruiter_id: user.id
+      });
       
       setRecruiterInternships(prev => [transformedInternship, ...prev]);
       setInternships(prev => [transformedInternship, ...prev]);
