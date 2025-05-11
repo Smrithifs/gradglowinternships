@@ -1,63 +1,19 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Internship, UserRole, Application, ApplicationStatus } from "@/types";
+import { InternshipContextProps } from "@/types/context";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Define types for database results to avoid deep type instantiation issues
-type DbInternshipRow = {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  category: string; // Will be cast to enum
-  description: string;
-  requirements: string[];
-  salary: string | null;
-  duration: string;
-  website: string | null;
-  logo_url: string | null;
-  created_at: string;
-  deadline: string;
-  is_remote: boolean;
-  company_description: string | null;
-  recruiter_id: string;
-};
-
-type DbApplicationRow = {
-  id: string;
-  student_id: string;
-  created_at: string;
-  portfolio_url: string | null;
-  why_interested: string | null;
-  relevant_experience: string | null;
-  status: string;
-  student_name: string | null;
-  internship_title: string;
-  internship_company: string;
-  resume_url: string | null;
-  cover_letter: string | null;
-  linkedin_url: string | null;
-};
-
-interface InternshipContextProps {
-  loading: boolean;
-  error: Error | null;
-  internships: Internship[];
-  studentApplications: Application[];
-  recruiterInternships: Internship[];
-  recruiterApplications: Application[];
-  createInternship: (internshipData: Omit<Internship, "id" | "created_at" | "recruiter_id">) => Promise<void>;
-  updateApplicationStatus: (applicationId: string, status: ApplicationStatus) => Promise<void>;
-  fetchInternships: () => Promise<void>;
-  fetchRecruiterInternships: () => Promise<void>;
-  fetchApplications: () => Promise<void>;
-  fetchRecruiterApplications: () => Promise<void>;
-  deleteInternship: (id: string) => Promise<void>;
-  getInternshipById: (id: string) => Internship | null;
-  hasApplied: (internshipId: string) => boolean;
-  applyForInternship: (internshipId: string, applicationData: { resume_url?: string, cover_letter?: string, additional_questions?: Record<string, string> }) => Promise<void>;
-}
+import { 
+  fetchAllInternships, 
+  fetchRecruiterInternships as fetchRecruiterInternshipsService,
+  fetchStudentApplications,
+  fetchRecruiterApplications as fetchRecruiterApplicationsService,
+  createInternship as createInternshipService,
+  deleteInternship as deleteInternshipService,
+  updateApplicationStatus as updateApplicationStatusService,
+  applyForInternship as applyForInternshipService
+} from "@/services/internshipService";
 
 const InternshipContext = createContext<InternshipContextProps | undefined>(undefined);
 
@@ -71,61 +27,11 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Helper function to transform database internship to app internship
-  const mapDbInternshipToInternship = (item: DbInternshipRow): Internship => ({
-    id: item.id,
-    title: item.title,
-    company: item.company,
-    location: item.location,
-    category: item.category as any, // Cast to enum
-    description: item.description,
-    requirements: item.requirements,
-    salary: item.salary,
-    duration: item.duration,
-    website: item.website,
-    logo_url: item.logo_url,
-    created_at: item.created_at,
-    deadline: item.deadline,
-    is_remote: item.is_remote,
-    company_description: item.company_description,
-    recruiter_id: item.recruiter_id
-  });
-
-  // Helper function to transform database application to app application
-  const mapDbApplicationToApplication = (dbApp: DbApplicationRow): Application => ({
-    id: dbApp.id,
-    student_id: dbApp.student_id,
-    internship_id: "", // Will be populated when needed
-    status: dbApp.status as ApplicationStatus,
-    resume_url: dbApp.resume_url || undefined,
-    cover_letter: dbApp.cover_letter || undefined,
-    created_at: dbApp.created_at,
-    additional_questions: {
-      linkedIn: dbApp.linkedin_url || undefined,
-      portfolio: dbApp.portfolio_url || undefined,
-      whyInterested: dbApp.why_interested || undefined,
-      relevantExperience: dbApp.relevant_experience || undefined,
-      internshipTitle: dbApp.internship_title,
-      company: dbApp.internship_company
-    }
-  });
-
   const fetchInternships = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('internship_listings')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternshipRow) => 
-        mapDbInternshipToInternship(item)
-      );
-      
-      setInternships(transformedInternships);
+      const data = await fetchAllInternships();
+      setInternships(data);
     } catch (err) {
       console.error("Error fetching internships:", err);
       setError(err as Error);
@@ -139,20 +45,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('internship_listings')
-        .select('*')
-        .eq('recruiter_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: DbInternshipRow) => 
-        mapDbInternshipToInternship(item)
-      );
-      
-      setRecruiterInternships(transformedInternships);
+      const data = await fetchRecruiterInternshipsService(user.id);
+      setRecruiterInternships(data);
     } catch (err) {
       console.error("Error fetching recruiter internships:", err);
       setError(err as Error);
@@ -166,20 +60,8 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .eq('student_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Transform applications for student view
-      const transformedApplications: Application[] = data.map((app: DbApplicationRow) => 
-        mapDbApplicationToApplication(app)
-      );
-      
-      setStudentApplications(transformedApplications);
+      const data = await fetchStudentApplications(user.id);
+      setStudentApplications(data);
     } catch (err) {
       console.error("Error fetching applications:", err);
       setError(err as Error);
@@ -193,34 +75,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const { data: internshipsData, error: internshipsError } = await supabase
-        .from('internship_listings')
-        .select('id')
-        .eq('recruiter_id', user.id);
-
-      if (internshipsError) throw internshipsError;
-      
-      if (internshipsData.length === 0) {
-        setRecruiterApplications([]);
-        setLoading(false);
-        return;
-      }
-      
-      // In a real app, you'd use internship_id to join with applications
-      // For now, we'll just return all applications the recruiter would see
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform applications for recruiter view
-      const transformedApplications: Application[] = data.map((app: DbApplicationRow) => 
-        mapDbApplicationToApplication(app)
-      );
-      
-      setRecruiterApplications(transformedApplications);
+      // In a real app, you'd fetch applications for this recruiter's internships
+      const data = await fetchRecruiterApplicationsService();
+      setRecruiterApplications(data);
     } catch (err) {
       console.error("Error fetching recruiter applications:", err);
       setError(err as Error);
@@ -241,27 +98,10 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const newInternship = {
-        ...internshipData,
-        recruiter_id: user.id
-      };
+      const newInternship = await createInternshipService(internshipData, user.id);
       
-      const { data, error } = await supabase
-        .from('internship_listings')
-        .insert([newInternship])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      // Update the local state with the new internship
-      const transformedInternship: Internship = mapDbInternshipToInternship({
-        ...data,
-        recruiter_id: user.id
-      });
-      
-      setRecruiterInternships(prev => [transformedInternship, ...prev]);
-      setInternships(prev => [transformedInternship, ...prev]);
+      setRecruiterInternships(prev => [newInternship, ...prev]);
+      setInternships(prev => [newInternship, ...prev]);
       
       toast({
         title: "Internship Posted",
@@ -292,13 +132,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('internship_listings')
-        .delete()
-        .eq('id', id)
-        .eq('recruiter_id', user.id);
-
-      if (error) throw error;
+      await deleteInternshipService(id, user.id);
       
       // Update local state
       setRecruiterInternships(prev => prev.filter(internship => internship.id !== id));
@@ -333,12 +167,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('applications')
-        .update({ status })
-        .eq('id', applicationId);
-
-      if (error) throw error;
+      await updateApplicationStatusService(applicationId, status);
       
       // Update local state
       setRecruiterApplications(prev => 
@@ -364,17 +193,17 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Implement getInternshipById function
+  // Get internship by ID
   const getInternshipById = (id: string): Internship | null => {
     return internships.find(internship => internship.id === id) || null;
   };
 
-  // Implement hasApplied function
+  // Check if student has applied to an internship
   const hasApplied = (internshipId: string): boolean => {
     return studentApplications.some(app => app.internship_id === internshipId);
   };
 
-  // Implement applyForInternship function
+  // Apply for an internship
   const applyForInternship = async (
     internshipId: string, 
     applicationData: { 
@@ -404,40 +233,12 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
 
     setLoading(true);
     try {
-      // Map to database structure
-      const applicationRecord = {
-        student_id: user.id,
-        student_name: user.name || null,
-        internship_company: internship.company,
-        internship_title: internship.title,
-        resume_url: applicationData.resume_url || null,
-        cover_letter: applicationData.cover_letter || null,
-        status: ApplicationStatus.PENDING,
-        linkedin_url: applicationData.additional_questions?.linkedIn || null,
-        portfolio_url: applicationData.additional_questions?.portfolio || null,
-        why_interested: applicationData.additional_questions?.whyInterested || null,
-        relevant_experience: applicationData.additional_questions?.relevantExperience || null,
-      };
-
-      const { data, error } = await supabase
-        .from('applications')
-        .insert([applicationRecord])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Add to local state
-      const newApplication: Application = {
-        id: data.id,
-        internship_id: internshipId,
-        student_id: user.id,
-        status: ApplicationStatus.PENDING,
-        resume_url: applicationData.resume_url,
-        cover_letter: applicationData.cover_letter,
-        created_at: data.created_at,
-        additional_questions: applicationData.additional_questions
-      };
+      const newApplication = await applyForInternshipService(
+        internship,
+        user.id,
+        user.name || null,
+        applicationData
+      );
 
       setStudentApplications(prev => [newApplication, ...prev]);
 
