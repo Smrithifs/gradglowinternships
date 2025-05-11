@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,20 +31,11 @@ const StudentDashboard = () => {
     };
   }).filter(app => app.internship); // Filter out any with missing internship data
   
-  // Get recommended internships - use a more diverse set and shuffle them
-  const getRecommendedInternships = () => {
-    // Filter out internships the student has already applied to
-    const availableInternships = internships
-      .filter(internship => !userApplications.some(app => app.internship_id === internship.id));
-    
-    // Shuffle array to get random recommendations
-    const shuffled = [...availableInternships].sort(() => 0.5 - Math.random());
-    
-    // Get 6 random internships or all available if less than 6
-    return shuffled.slice(0, 6);
-  };
-  
-  const recommendedInternships = getRecommendedInternships();
+  // Get recommended internships (simple algorithm - just newest ones the student hasn't applied to)
+  const recommendedInternships = internships
+    .filter(internship => !userApplications.some(app => app.internship_id === internship.id))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 6); // Get top 6
   
   const getStatusColor = (status: ApplicationStatus) => {
     switch (status) {
@@ -91,12 +82,6 @@ const StudentDashboard = () => {
                 >
                   My Applications
                 </button>
-                <Link 
-                  to="/internships"
-                  className="block w-full text-left px-4 py-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100"
-                >
-                  Browse Internships
-                </Link>
                 <button 
                   onClick={() => setActiveTab("recommended")}
                   className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
@@ -173,12 +158,12 @@ const StudentDashboard = () => {
                   <div className="bg-white p-6 rounded-lg shadow-sm border text-center">
                     <h3 className="text-lg font-medium mb-2">No applications yet</h3>
                     <p className="text-gray-600 mb-4">You haven't applied to any internships yet.</p>
-                    <Link 
-                      to="/internships"
+                    <button 
+                      onClick={() => setActiveTab("recommended")}
                       className="text-gradMid hover:underline"
                     >
-                      Browse available internships
-                    </Link>
+                      View recommended internships
+                    </button>
                   </div>
                 )}
               </div>
@@ -186,35 +171,15 @@ const StudentDashboard = () => {
             
             {activeTab === "recommended" && (
               <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h1 className="text-2xl font-bold">Recommended Internships</h1>
-                  <Link to="/internships">
-                    <Badge variant="outline" className="hover:bg-gray-100 cursor-pointer">
-                      View All Internships
-                    </Badge>
-                  </Link>
-                </div>
+                <h1 className="text-2xl font-bold mb-6">Recommended Internships</h1>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {recommendedInternships.length > 0 ? (
-                    recommendedInternships.map(internship => (
-                      <InternshipCard 
-                        key={internship.id} 
-                        internship={internship} 
-                      />
-                    ))
-                  ) : (
-                    <div className="col-span-2 bg-white p-6 rounded-lg shadow-sm border text-center">
-                      <h3 className="text-lg font-medium mb-2">No recommendations available</h3>
-                      <p className="text-gray-600 mb-4">We don't have any internship recommendations for you at the moment.</p>
-                      <Link 
-                        to="/internships"
-                        className="text-gradMid hover:underline"
-                      >
-                        Browse all internships
-                      </Link>
-                    </div>
-                  )}
+                  {recommendedInternships.map(internship => (
+                    <InternshipCard 
+                      key={internship.id} 
+                      internship={internship} 
+                    />
+                  ))}
                 </div>
               </div>
             )}

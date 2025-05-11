@@ -5,7 +5,6 @@ import { User, UserRole } from "@/types";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, AuthResponse } from "@supabase/supabase-js";
-import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -30,6 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,17 +53,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Error getting session:", error);
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      } else {
         setLoading(false);
       }
     };
@@ -92,16 +87,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data) {
         console.log("User profile fetched:", data);
         
+        // Type as any to work around type issues
+        const profileData = data as any;
+        
         setUser({
           id: userId,
           email: session?.user?.email || '',
-          role: data.role === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
-          name: data.name || undefined,
-          avatar_url: data.avatar_url || undefined
+          role: (profileData.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
+          name: profileData.name || undefined,
+          avatar_url: profileData.avatar_url || undefined
         });
-      } else {
-        console.error('No profile found for user:', userId);
-        toast.error('No profile found. Please sign out and sign up again.');
       }
       setLoading(false);
     } catch (error) {
@@ -120,12 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
 
-      if (response.error) {
-        toast.error(response.error.message);
-        setLoading(false);
-        throw response.error;
-      }
-
       return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
@@ -139,7 +128,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       console.log("Signing up with:", { email, role, name });
-      // First, create the auth user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -153,13 +141,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        toast.error(error.message);
-        setLoading(false);
         throw error;
       }
       
-      // After signup, manually create the profile entry
       if (data.user) {
+        // After signup, manually create the profile entry to ensure it exists
         const profileData = {
           id: data.user.id,
           role: role,
@@ -169,20 +155,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([profileData]);
+          .upsert([profileData]);
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          toast.error("Account created but profile setup failed. Please sign in again.");
-        } else {
-          // Sign in the user automatically after signup
-          await signIn(email, password);
-          toast.success("Account created successfully!");
         }
+          
+        // Login the user automatically after signup
+        await signIn(email, password);
+        
+        toast({
+          title: "Account created!",
+          description: "Your account has been successfully created.",
+        });
       }
+      
     } catch (error: any) {
       console.error("Error signing up:", error);
-      toast.error(error.message || "An error occurred during sign up.");
+      toast({
+        title: "Sign up failed",
+        description: error.message || "An error occurred during sign up.",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };
@@ -195,11 +189,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setSession(null);
       
-      toast.success("You've been successfully signed out.");
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
+      });
+      
       navigate("/");
     } catch (error: any) {
       console.error("Error signing out:", error);
-      toast.error(error.message || "An error occurred while signing out.");
+      toast({
+        title: "Sign out failed",
+        description: error.message || "An error occurred while signing out.",
+        variant: "destructive",
+      });
     }
   };
 

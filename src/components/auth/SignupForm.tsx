@@ -13,11 +13,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserRole } from "@/types";
-import { toast } from "sonner";
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -33,7 +32,6 @@ const FormSchema = z.object({
 const SignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -51,18 +49,9 @@ const SignupForm = () => {
     console.log("Form submitted with values:", values);
     try {
       await signUp(values.email, values.password, values.role, values.name);
-      
-      // Navigation will be handled in the Auth context after successful signup
-      // Redirect based on user role
-      if (values.role === UserRole.STUDENT) {
-        navigate('/dashboard');
-      } else {
-        navigate('/recruiter-dashboard');
-      }
-      
-    } catch (error: any) {
+      // Navigation and profile creation are handled in the AuthContext
+    } catch (error) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
     }
