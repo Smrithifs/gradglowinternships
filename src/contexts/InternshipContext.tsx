@@ -73,10 +73,23 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: any) => ({
-        ...item,
+      const transformedInternships: Internship[] = data.map((item: DbInternship) => ({
+        id: item.id,
+        title: item.title,
+        company: item.company,
+        location: item.location,
         category: item.category as any,
-        recruiter_id: item.recruiter_id || ""
+        description: item.description,
+        requirements: item.requirements,
+        salary: item.salary,
+        duration: item.duration,
+        website: item.website,
+        logo_url: item.logo_url,
+        created_at: item.created_at,
+        deadline: item.deadline,
+        is_remote: item.is_remote,
+        company_description: item.company_description,
+        recruiter_id: item.recruiter_id
       }));
       
       setInternships(transformedInternships);
@@ -102,10 +115,23 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships: Internship[] = data.map((item: any) => ({
-        ...item,
+      const transformedInternships: Internship[] = data.map((item: DbInternship) => ({
+        id: item.id,
+        title: item.title,
+        company: item.company,
+        location: item.location,
         category: item.category as any,
-        recruiter_id: item.recruiter_id || ""
+        description: item.description,
+        requirements: item.requirements,
+        salary: item.salary,
+        duration: item.duration,
+        website: item.website,
+        logo_url: item.logo_url,
+        created_at: item.created_at,
+        deadline: item.deadline,
+        is_remote: item.is_remote,
+        company_description: item.company_description,
+        recruiter_id: item.recruiter_id
       }));
       
       setRecruiterInternships(transformedInternships);
@@ -131,7 +157,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       // Transform applications for student view
-      const transformedApplications: Application[] = data.map((app: any) => ({
+      const transformedApplications: Application[] = data.map((app: DbApplication) => ({
         id: app.id,
         student_id: app.student_id,
         internship_id: app.id, // Using app ID as internship_id for simplicity
@@ -186,7 +212,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform applications for recruiter view
-      const transformedApplications: Application[] = data.map((app: any) => ({
+      const transformedApplications: Application[] = data.map((app: DbApplication) => ({
         id: app.id,
         student_id: app.student_id,
         internship_id: app.id, // Using app ID as internship_id for simplicity
