@@ -37,17 +37,17 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   // Helper function to transform database internship to app internship
-  const mapDbInternshipToInternship = (dbInternship: DbInternship): Internship => ({
+  const mapDbInternshipToInternship = (dbInternship: any): Internship => ({
     ...dbInternship,
     category: dbInternship.category as any, // Cast to enum
     recruiter_id: dbInternship.recruiter_id || ""
   });
 
   // Helper function to transform database application to app application
-  const mapDbApplicationToApplication = (dbApp: DbApplication, internshipId: string = ""): Application => ({
+  const mapDbApplicationToApplication = (dbApp: any, internshipId: string = ""): Application => ({
     id: dbApp.id,
     student_id: dbApp.student_id,
-    internship_id: internshipId, // Use the provided internship_id or default to empty string
+    internship_id: internshipId,
     status: dbApp.status as ApplicationStatus,
     resume_url: dbApp.resume_url || undefined,
     cover_letter: dbApp.cover_letter || undefined,
@@ -73,10 +73,12 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships = data.map((item: any) => mapDbInternshipToInternship({
+      const transformedInternships: Internship[] = data.map((item: any) => ({
         ...item,
+        category: item.category as any,
         recruiter_id: item.recruiter_id || ""
       }));
+      
       setInternships(transformedInternships);
     } catch (err) {
       console.error("Error fetching internships:", err);
@@ -100,10 +102,12 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Transform to our application model
-      const transformedInternships = data.map((item: any) => mapDbInternshipToInternship({
+      const transformedInternships: Internship[] = data.map((item: any) => ({
         ...item,
+        category: item.category as any,
         recruiter_id: item.recruiter_id || ""
       }));
+      
       setRecruiterInternships(transformedInternships);
     } catch (err) {
       console.error("Error fetching recruiter internships:", err);
@@ -126,12 +130,24 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // For student applications, we need to derive internship_id
-      // For simplicity in this implementation, we'll use the application ID
-      // In a real app, you'd store and fetch the actual internship_id
-      const transformedApplications: Application[] = data.map((app: any) => {
-        return mapDbApplicationToApplication(app as DbApplication, app.id);
-      });
+      // Transform applications for student view
+      const transformedApplications: Application[] = data.map((app: any) => ({
+        id: app.id,
+        student_id: app.student_id,
+        internship_id: app.id, // Using app ID as internship_id for simplicity
+        status: app.status as ApplicationStatus,
+        resume_url: app.resume_url || undefined,
+        cover_letter: app.cover_letter || undefined,
+        created_at: app.created_at,
+        additional_questions: {
+          linkedIn: app.linkedin_url || undefined,
+          portfolio: app.portfolio_url || undefined,
+          whyInterested: app.why_interested || undefined,
+          relevantExperience: app.relevant_experience || undefined,
+          internshipTitle: app.internship_title,
+          company: app.internship_company
+        }
+      }));
       
       setStudentApplications(transformedApplications);
     } catch (err) {
@@ -169,10 +185,24 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
       
-      // Transform to our application model
-      const transformedApplications: Application[] = data.map((app: any) => {
-        return mapDbApplicationToApplication(app as DbApplication, app.id);
-      });
+      // Transform applications for recruiter view
+      const transformedApplications: Application[] = data.map((app: any) => ({
+        id: app.id,
+        student_id: app.student_id,
+        internship_id: app.id, // Using app ID as internship_id for simplicity
+        status: app.status as ApplicationStatus,
+        resume_url: app.resume_url || undefined,
+        cover_letter: app.cover_letter || undefined,
+        created_at: app.created_at,
+        additional_questions: {
+          linkedIn: app.linkedin_url || undefined,
+          portfolio: app.portfolio_url || undefined,
+          whyInterested: app.why_interested || undefined,
+          relevantExperience: app.relevant_experience || undefined,
+          internshipTitle: app.internship_title,
+          company: app.internship_company
+        }
+      }));
       
       setRecruiterApplications(transformedApplications);
     } catch (err) {
@@ -209,10 +239,11 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
       
       // Update the local state with the new internship
-      const transformedInternship = mapDbInternshipToInternship({
+      const transformedInternship: Internship = {
         ...data,
+        category: data.category as any,
         recruiter_id: data.recruiter_id || user.id
-      });
+      };
       
       setRecruiterInternships(prev => [transformedInternship, ...prev]);
       setInternships(prev => [transformedInternship, ...prev]);
@@ -318,15 +349,17 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Implement the missing functions
+  // Implement getInternshipById function
   const getInternshipById = (id: string): Internship | null => {
     return internships.find(internship => internship.id === id) || null;
   };
 
+  // Implement hasApplied function
   const hasApplied = (internshipId: string): boolean => {
     return studentApplications.some(app => app.internship_id === internshipId);
   };
 
+  // Implement applyForInternship function
   const applyForInternship = async (
     internshipId: string, 
     applicationData: { 
