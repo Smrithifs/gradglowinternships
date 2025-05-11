@@ -90,23 +90,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Type as any to work around type issues
         const profileData = data as any;
         
-        const userRole = profileData.role === UserRole.RECRUITER ? UserRole.RECRUITER : UserRole.STUDENT;
-        
         setUser({
           id: userId,
           email: session?.user?.email || '',
-          role: userRole,
+          role: (profileData.role as UserRole) === UserRole.STUDENT ? UserRole.STUDENT : UserRole.RECRUITER,
           name: profileData.name || undefined,
           avatar_url: profileData.avatar_url || undefined
         });
-        
-        // Redirect to appropriate dashboard if on a general page
-        const currentPath = window.location.pathname;
-        if (currentPath === '/' || currentPath === '/login' || currentPath === '/signup') {
-          setTimeout(() => {
-            navigate(userRole === UserRole.STUDENT ? '/dashboard' : '/recruiter-dashboard');
-          }, 0);
-        }
       }
       setLoading(false);
     } catch (error) {
@@ -125,10 +115,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
 
-      if (response.error) {
-        throw response.error;
-      }
-      
       return response;
     } catch (error: any) {
       console.error("Error signing in:", error);
@@ -159,8 +145,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (data.user) {
-        console.log("User created successfully:", data.user);
-        
         // After signup, manually create the profile entry to ensure it exists
         const profileData = {
           id: data.user.id,
@@ -175,11 +159,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
         if (profileError) {
           console.error("Error creating profile:", profileError);
-          throw profileError;
         }
           
-        console.log("Profile created successfully for:", name);
-        
         // Login the user automatically after signup
         await signIn(email, password);
         
@@ -187,8 +168,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Account created!",
           description: "Your account has been successfully created.",
         });
-        
-        // Navigation will be handled by the auth state change listener
       }
       
     } catch (error: any) {
@@ -199,7 +178,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
-      throw error;
     }
   };
 

@@ -13,11 +13,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { UserRole } from "@/types";
-import { useToast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -33,8 +32,6 @@ const FormSchema = z.object({
 const SignupForm = () => {
   const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -52,24 +49,9 @@ const SignupForm = () => {
     console.log("Form submitted with values:", values);
     try {
       await signUp(values.email, values.password, values.role, values.name);
-      toast({
-        title: "Account created!",
-        description: `Welcome to GradGlow, ${values.name}! Your account has been created.`,
-      });
-      
-      // Navigate based on role - this is handled by auth context, but just in case
-      const redirectPath = values.role === UserRole.RECRUITER 
-        ? "/recruiter-dashboard" 
-        : "/dashboard";
-      
-      navigate(redirectPath);
-    } catch (error: any) {
+      // Navigation and profile creation are handled in the AuthContext
+    } catch (error) {
       console.error("Signup error:", error);
-      toast({
-        title: "Signup failed",
-        description: error.message || "An error occurred during signup.",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
