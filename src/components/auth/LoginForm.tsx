@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRole } from "@/types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -24,10 +24,9 @@ const FormSchema = z.object({
 });
 
 const LoginForm = () => {
-  const { signIn, user } = useAuth();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -43,18 +42,12 @@ const LoginForm = () => {
       const { data, error } = await signIn(values.email, values.password);
       
       if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast.error(error.message);
+        setIsLoading(false);
         return;
       }
       
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
+      toast.success("Welcome back!");
       
       // Redirect based on user role
       if (data?.user?.user_metadata?.role === UserRole.STUDENT) {
@@ -66,11 +59,7 @@ const LoginForm = () => {
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Login failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

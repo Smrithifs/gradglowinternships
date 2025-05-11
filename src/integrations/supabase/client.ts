@@ -25,7 +25,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Helper function to check connection status
 export const checkSupabaseConnection = async () => {
   try {
-    // Use maybeSingle instead of select().count
     const { data, error } = await supabase
       .from('internship_listings')
       .select('*')
