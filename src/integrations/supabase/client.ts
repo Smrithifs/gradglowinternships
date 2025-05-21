@@ -25,9 +25,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Helper function to check connection status
 export const checkSupabaseConnection = async () => {
   try {
-    // Use maybeSingle instead of select().count
+    // Use resume_links table instead of applications which no longer exists
     const { data, error } = await supabase
-      .from('applications')
+      .from('resume_links')
       .select('*')
       .limit(1)
       .maybeSingle();

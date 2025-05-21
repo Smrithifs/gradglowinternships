@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { User, UserRole } from "@/types";
@@ -140,16 +139,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       setLoading(false);
       
-      // Create a properly structured AuthResponse object for error case
+      // Create a proper AuthResponse for error case
       return {
         data: { user: null, session: null },
-        error: {
-          message: error.message || "An error occurred during sign in.",
-          name: "AuthError",
-          code: "custom_error",
-          __isAuthError: true,
-          status: 500
-        }
+        error: new AuthError(error.message || "An error occurred during sign in.", 500)
       };
     }
   };
@@ -218,16 +211,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       setLoading(false);
       
-      // Create a properly structured AuthResponse object for error case
+      // Create a proper AuthResponse for error case
       return {
         data: { user: null, session: null },
-        error: {
-          message: error.message || "An error occurred during sign up.",
-          name: "AuthError",
-          code: "custom_error",
-          __isAuthError: true,
-          status: 500
-        }
+        error: new AuthError(error.message || "An error occurred during sign up.", 500)
       };
     }
   };

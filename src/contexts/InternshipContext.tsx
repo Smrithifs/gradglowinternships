@@ -375,35 +375,79 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       if (user.role === 'student') {
-        const { data, error } = await supabase
-          .from('applications')
+        // Query resume_links table to get base application data
+        const { data: resumeData, error: resumeError } = await supabase
+          .from('resume_links')
           .select('*')
           .eq('student_id', user.id);
           
-        if (error) {
-          console.error("Error fetching applications:", error);
+        if (resumeError) {
+          console.error("Error fetching resume links:", resumeError);
+          setLoading(false);
           return;
         }
 
-        if (data) {
+        // Additional queries for other application components
+        const { data: coverLetterData } = await supabase
+          .from('cover_letters')
+          .select('*')
+          .eq('student_id', user.id);
+          
+        const { data: linkedinData } = await supabase
+          .from('linkedin_profiles')
+          .select('*')
+          .eq('student_id', user.id);
+          
+        const { data: portfolioData } = await supabase
+          .from('portfolio_links')
+          .select('*')
+          .eq('student_id', user.id);
+          
+        const { data: interestData } = await supabase
+          .from('interest_statements')
+          .select('*')
+          .eq('student_id', user.id);
+          
+        const { data: experienceData } = await supabase
+          .from('experience_descriptions')
+          .select('*')
+          .eq('student_id', user.id);
+
+        if (resumeData) {
+          // Create a map to efficiently lookup data from other tables
+          const coverLetterMap = new Map(coverLetterData?.map(item => [item.internship_title, item]) || []);
+          const linkedinMap = new Map(linkedinData?.map(item => [item.internship_title, item]) || []);
+          const portfolioMap = new Map(portfolioData?.map(item => [item.internship_title, item]) || []);
+          const interestMap = new Map(interestData?.map(item => [item.internship_title, item]) || []);
+          const experienceMap = new Map(experienceData?.map(item => [item.internship_title, item]) || []);
+          
           // Transform data to match our Application type
-          const transformedData = data.map(app => ({
-            id: app.id,
-            internship_id: app.internship_title, // Using title as a reference
-            student_id: app.student_id,
-            status: app.status as ApplicationStatus,
-            resume_url: app.resume_url || undefined,
-            cover_letter: app.cover_letter || undefined,
-            created_at: app.created_at,
-            additional_questions: {
-              linkedIn: app.linkedin_url || "",
-              portfolio: app.portfolio_url || "",
-              whyInterested: app.why_interested || "",
-              relevantExperience: app.relevant_experience || "",
-              internshipTitle: app.internship_title || "",
-              company: app.internship_company || "",
-            }
-          })) as Application[];
+          const transformedData = resumeData.map(resume => {
+            const internshipTitle = resume.internship_title;
+            const coverLetter = coverLetterMap.get(internshipTitle);
+            const linkedin = linkedinMap.get(internshipTitle);
+            const portfolio = portfolioMap.get(internshipTitle);
+            const interest = interestMap.get(internshipTitle);
+            const experience = experienceMap.get(internshipTitle);
+            
+            return {
+              id: resume.id,
+              internship_id: resume.internship_title, // Using title as a reference
+              student_id: resume.student_id,
+              status: resume.status as ApplicationStatus,
+              resume_url: resume.resume_url || undefined,
+              cover_letter: coverLetter?.cover_letter || undefined,
+              created_at: resume.created_at,
+              additional_questions: {
+                linkedIn: linkedin?.linkedin_url || "",
+                portfolio: portfolio?.portfolio_url || "",
+                whyInterested: interest?.why_interested || "",
+                relevantExperience: experience?.relevant_experience || "",
+                internshipTitle: resume.internship_title || "",
+                company: resume.internship_company || "",
+              }
+            } as Application;
+          });
           
           setApplications(transformedData);
         }
@@ -487,6 +531,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       // Store application locally if it's a dummy internship
       if (internshipId.startsWith('dummy-')) {
         console.log("Handling dummy internship application");
+        
         // Create a local application with a UUID
         const newApplication: Application = {
           id: uuidv4(),
@@ -512,40 +557,116 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // For real internships, submit to Supabase with the new schema
-      const applicationToSubmit = {
-        student_id: user!.id,
-        student_name: user!.name || null,
-        internship_title: internship.title,
-        internship_company: internship.company,
-        resume_url: applicationData.resume_url || null,
-        cover_letter: applicationData.cover_letter || null,
-        linkedin_url: additionalQuestions.linkedIn || null,
-        portfolio_url: additionalQuestions.portfolio || null,
-        why_interested: additionalQuestions.whyInterested || null,
-        relevant_experience: additionalQuestions.relevantExperience || null,
-        status: ApplicationStatus.PENDING
-      };
+      // Create entries in each of the application component tables
       
-      const { data, error } = await supabase
-        .from('applications')
-        .insert([applicationToSubmit])
+      // 1. Resume Links
+      const { data: resumeData, error: resumeError } = await supabase
+        .from('resume_links')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          resume_url: applicationData.resume_url || null,
+          status: ApplicationStatus.PENDING
+        }])
         .select();
       
-      if (error) {
-        console.error("Supabase error when applying:", error);
-        throw error;
+      if (resumeError) {
+        console.error("Error submitting resume:", resumeError);
+        throw resumeError;
       }
       
-      if (data) {
-        // Transform to our Application interface format
+      // 2. Cover Letters
+      const { error: coverLetterError } = await supabase
+        .from('cover_letters')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          cover_letter: applicationData.cover_letter || null,
+          status: ApplicationStatus.PENDING
+        }]);
+      
+      if (coverLetterError) {
+        console.error("Error submitting cover letter:", coverLetterError);
+      }
+      
+      // 3. LinkedIn Profile
+      const { error: linkedinError } = await supabase
+        .from('linkedin_profiles')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          linkedin_url: additionalQuestions.linkedIn || null,
+          status: ApplicationStatus.PENDING
+        }]);
+      
+      if (linkedinError) {
+        console.error("Error submitting LinkedIn profile:", linkedinError);
+      }
+      
+      // 4. Portfolio Links
+      const { error: portfolioError } = await supabase
+        .from('portfolio_links')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          portfolio_url: additionalQuestions.portfolio || null,
+          status: ApplicationStatus.PENDING
+        }]);
+      
+      if (portfolioError) {
+        console.error("Error submitting portfolio link:", portfolioError);
+      }
+      
+      // 5. Interest Statements
+      const { error: interestError } = await supabase
+        .from('interest_statements')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          why_interested: additionalQuestions.whyInterested || null,
+          status: ApplicationStatus.PENDING
+        }]);
+      
+      if (interestError) {
+        console.error("Error submitting interest statement:", interestError);
+      }
+      
+      // 6. Experience Descriptions
+      const { error: experienceError } = await supabase
+        .from('experience_descriptions')
+        .insert([{
+          student_id: user.id,
+          student_name: user.name || null,
+          internship_title: internship.title,
+          internship_company: internship.company,
+          relevant_experience: additionalQuestions.relevantExperience || null,
+          status: ApplicationStatus.PENDING
+        }]);
+      
+      if (experienceError) {
+        console.error("Error submitting experience description:", experienceError);
+      }
+      
+      if (resumeData) {
+        // Add entry to the local applications state
         const newApplication: Application = {
-          id: data[0].id,
+          id: resumeData[0].id,
           internship_id: internship.id,
-          student_id: user!.id,
+          student_id: user.id,
           status: ApplicationStatus.PENDING,
           resume_url: applicationData.resume_url,
           cover_letter: applicationData.cover_letter,
-          created_at: data[0].created_at,
+          created_at: resumeData[0].created_at,
           additional_questions: additionalQuestions
         };
         
@@ -638,28 +759,38 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to update application status");
       }
       
-      const { data, error } = await supabase
-        .from('applications')
-        .update({ status })
-        .eq('id', applicationId)
-        .select();
+      // Update status in all application component tables
+      const tables = [
+        'resume_links',
+        'cover_letters', 
+        'linkedin_profiles',
+        'portfolio_links',
+        'interest_statements', 
+        'experience_descriptions'
+      ];
       
-      if (error) {
-        throw error;
+      for (const table of tables) {
+        const { error } = await supabase
+          .from(table)
+          .update({ status })
+          .eq('id', applicationId);
+        
+        if (error) {
+          console.error(`Error updating status in ${table}:`, error);
+        }
       }
       
-      if (data) {
-        const updatedApplications = applications.map(app => 
-          app.id === applicationId ? { ...app, status } : app
-        );
-        
-        setApplications(updatedApplications);
-        
-        toast({
-          title: "Status updated",
-          description: `Application status has been updated to ${status}.`,
-        });
-      }
+      // Update local state
+      const updatedApplications = applications.map(app => 
+        app.id === applicationId ? { ...app, status } : app
+      );
+      
+      setApplications(updatedApplications);
+      
+      toast({
+        title: "Status updated",
+        description: `Application status has been updated to ${status}.`,
+      });
     } catch (error: any) {
       console.error("Error updating application status:", error);
       toast({
