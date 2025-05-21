@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -759,6 +760,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("You must be logged in as a recruiter to update application status");
       }
       
+      // Fix: Use specific table names instead of dynamic strings
       // Update status in all application component tables
       const tables = [
         'resume_links',
@@ -767,7 +769,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         'portfolio_links',
         'interest_statements', 
         'experience_descriptions'
-      ];
+      ] as const; // Add 'as const' to treat this as a tuple of literal strings
       
       for (const table of tables) {
         const { error } = await supabase
