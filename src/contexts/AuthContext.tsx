@@ -139,15 +139,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
-      // Create and return a properly structured AuthResponse object for error case
-      const authError: AuthError = {
-        message: error.message || "An error occurred during sign in.",
-        name: "AuthError",
-        status: 500
-      };
+      
+      // Create a properly structured AuthResponse object for error case
       return {
         data: { user: null, session: null },
-        error: authError
+        error: {
+          message: error.message || "An error occurred during sign in.",
+          name: "AuthError",
+          code: "custom_error",
+          __isAuthError: true,
+          status: 500
+        }
       };
     }
   };
@@ -215,15 +217,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
       setLoading(false);
-      // Create and return a properly structured AuthResponse object for error case
-      const authError: AuthError = {
-        message: error.message || "An error occurred during sign up.",
-        name: "AuthError",
-        status: 500
-      };
+      
+      // Create a properly structured AuthResponse object for error case
       return {
         data: { user: null, session: null },
-        error: authError
+        error: {
+          message: error.message || "An error occurred during sign up.",
+          name: "AuthError",
+          code: "custom_error",
+          __isAuthError: true,
+          status: 500
+        }
       };
     }
   };

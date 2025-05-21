@@ -65,28 +65,18 @@ const ApplicationForm = ({ internshipId, onSuccess }: ApplicationFormProps) => {
         throw new Error("Internship information not found");
       }
       
-      // Prepare additional questions with form fields
-      const additionalQuestions: Record<string, string> = {
-        linkedIn: data.linkedIn || "",
-        portfolio: data.portfolio || "",
-        whyInterested: data.whyInterested || "",
-        relevantExperience: data.relevantExperience || "",
-        // Include internship details for reference
-        internshipTitle: internship.title || "",
-        company: internship.company || "",
-        location: internship.location || "",
-        category: internship.category.toString() || "",
-        salary: internship.salary || "",
-        duration: internship.duration || "",
-        is_remote: internship.is_remote ? "true" : "false",
-        deadline: internship.deadline || "",
-      };
-      
-      // Submit application with all fields
+      // Submit application with all fields to the new separate tables
       await applyForInternship(internshipId, {
         resume_url: data.resume_url || "",
         cover_letter: data.cover_letter || "",
-        additional_questions: additionalQuestions,
+        additional_questions: {
+          linkedIn: data.linkedIn || "",
+          portfolio: data.portfolio || "",
+          whyInterested: data.whyInterested || "",
+          relevantExperience: data.relevantExperience || "",
+          internshipTitle: internship.title || "",
+          company: internship.company || "",
+        },
       });
       
       setSubmitted(true);

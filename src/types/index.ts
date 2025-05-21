@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -56,6 +57,42 @@ export enum ApplicationStatus {
   REJECTED = "rejected",
 }
 
+// Update the application interfaces to work with split tables
+export interface ApplicationComponent {
+  id: string;
+  internship_title: string;
+  internship_company: string;
+  student_id: string;
+  student_name?: string;
+  status: ApplicationStatus;
+  created_at: string;
+}
+
+export interface ResumeLink extends ApplicationComponent {
+  resume_url?: string;
+}
+
+export interface CoverLetter extends ApplicationComponent {
+  cover_letter?: string;
+}
+
+export interface LinkedInProfile extends ApplicationComponent {
+  linkedin_url?: string;
+}
+
+export interface PortfolioLink extends ApplicationComponent {
+  portfolio_url?: string;
+}
+
+export interface InterestStatement extends ApplicationComponent {
+  why_interested?: string;
+}
+
+export interface ExperienceDescription extends ApplicationComponent {
+  relevant_experience?: string;
+}
+
+// For backward compatibility with existing code
 export interface Application {
   id: string;
   internship_id: string;
