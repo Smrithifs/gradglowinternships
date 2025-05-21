@@ -140,13 +140,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       setLoading(false);
       
-      // Fix: Create an explicit AuthResponse type with the correct structure
-      const errorResponse = {
-        data: { user: null, session: null } as { user: null, session: null },
+      // Create a properly typed AuthResponse object for error case
+      return {
+        data: {
+          user: null,
+          session: null
+        },
         error: new AuthError(error.message || "An error occurred during sign in.")
-      } as AuthResponse;
-      
-      return errorResponse;
+      };
     }
   };
 
@@ -214,13 +215,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       setLoading(false);
       
-      // Fix: Create an explicit AuthResponse type with the correct structure
-      const errorResponse = {
-        data: { user: null, session: null } as { user: null, session: null },
+      // Create a properly typed AuthResponse object for error case
+      return {
+        data: {
+          user: null,
+          session: null
+        },
         error: new AuthError(error.message || "An error occurred during sign up.")
-      } as AuthResponse;
-      
-      return errorResponse;
+      };
     }
   };
 
