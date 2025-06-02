@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           user: null,
           session: null
         },
-        error: new AuthError(error.message || "An error occurred during sign in.")
+        error: error as AuthError
       };
     }
   };
@@ -221,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           user: null,
           session: null
         },
-        error: new AuthError(error.message || "An error occurred during sign up.")
+        error: error as AuthError
       };
     }
   };

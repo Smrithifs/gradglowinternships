@@ -12,98 +12,53 @@ export type Database = {
       cover_letters: {
         Row: {
           cover_letter: string | null
-          created_at: string
           id: string
-          internship_company: string
-          internship_title: string
-          status: string
           student_id: string
-          student_name: string | null
         }
         Insert: {
           cover_letter?: string | null
-          created_at?: string
           id?: string
-          internship_company: string
-          internship_title: string
-          status?: string
           student_id: string
-          student_name?: string | null
         }
         Update: {
           cover_letter?: string | null
-          created_at?: string
           id?: string
-          internship_company?: string
-          internship_title?: string
-          status?: string
           student_id?: string
-          student_name?: string | null
         }
         Relationships: []
       }
       experience_descriptions: {
         Row: {
-          created_at: string
           id: string
-          internship_company: string
-          internship_title: string
           relevant_experience: string | null
-          status: string
           student_id: string
-          student_name: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          internship_company: string
-          internship_title: string
           relevant_experience?: string | null
-          status?: string
           student_id: string
-          student_name?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          internship_company?: string
-          internship_title?: string
           relevant_experience?: string | null
-          status?: string
           student_id?: string
-          student_name?: string | null
         }
         Relationships: []
       }
       interest_statements: {
         Row: {
-          created_at: string
           id: string
-          internship_company: string
-          internship_title: string
-          status: string
           student_id: string
-          student_name: string | null
           why_interested: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          internship_company: string
-          internship_title: string
-          status?: string
           student_id: string
-          student_name?: string | null
           why_interested?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          internship_company?: string
-          internship_title?: string
-          status?: string
           student_id?: string
-          student_name?: string | null
           why_interested?: string | null
         }
         Relationships: []
@@ -164,67 +119,37 @@ export type Database = {
       }
       linkedin_profiles: {
         Row: {
-          created_at: string
           id: string
-          internship_company: string
-          internship_title: string
           linkedin_url: string | null
-          status: string
           student_id: string
-          student_name: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          internship_company: string
-          internship_title: string
           linkedin_url?: string | null
-          status?: string
           student_id: string
-          student_name?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          internship_company?: string
-          internship_title?: string
           linkedin_url?: string | null
-          status?: string
           student_id?: string
-          student_name?: string | null
         }
         Relationships: []
       }
       portfolio_links: {
         Row: {
-          created_at: string
           id: string
-          internship_company: string
-          internship_title: string
           portfolio_url: string | null
-          status: string
           student_id: string
-          student_name: string | null
         }
         Insert: {
-          created_at?: string
           id?: string
-          internship_company: string
-          internship_title: string
           portfolio_url?: string | null
-          status?: string
           student_id: string
-          student_name?: string | null
         }
         Update: {
-          created_at?: string
           id?: string
-          internship_company?: string
-          internship_title?: string
           portfolio_url?: string | null
-          status?: string
           student_id?: string
-          student_name?: string | null
         }
         Relationships: []
       }

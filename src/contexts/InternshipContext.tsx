@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Internship, InternshipCategory, Application, ApplicationStatus } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -388,7 +387,7 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        // Additional queries for other application components
+        // Query other simplified tables for additional application components
         const { data: coverLetterData } = await supabase
           .from('cover_letters')
           .select('*')
@@ -415,21 +414,21 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
           .eq('student_id', user.id);
 
         if (resumeData) {
-          // Create a map to efficiently lookup data from other tables
-          const coverLetterMap = new Map(coverLetterData?.map(item => [item.internship_title, item]) || []);
-          const linkedinMap = new Map(linkedinData?.map(item => [item.internship_title, item]) || []);
-          const portfolioMap = new Map(portfolioData?.map(item => [item.internship_title, item]) || []);
-          const interestMap = new Map(interestData?.map(item => [item.internship_title, item]) || []);
-          const experienceMap = new Map(experienceData?.map(item => [item.internship_title, item]) || []);
+          // Create a map to efficiently lookup data from other tables by resume ID
+          const coverLetterMap = new Map(coverLetterData?.map(item => [item.id, item]) || []);
+          const linkedinMap = new Map(linkedinData?.map(item => [item.id, item]) || []);
+          const portfolioMap = new Map(portfolioData?.map(item => [item.id, item]) || []);
+          const interestMap = new Map(interestData?.map(item => [item.id, item]) || []);
+          const experienceMap = new Map(experienceData?.map(item => [item.id, item]) || []);
           
           // Transform data to match our Application type
           const transformedData = resumeData.map(resume => {
-            const internshipTitle = resume.internship_title;
-            const coverLetter = coverLetterMap.get(internshipTitle);
-            const linkedin = linkedinMap.get(internshipTitle);
-            const portfolio = portfolioMap.get(internshipTitle);
-            const interest = interestMap.get(internshipTitle);
-            const experience = experienceMap.get(internshipTitle);
+            // For simplified structure, we'll match by student_id instead of internship_title
+            const coverLetter = coverLetterData?.find(item => item.student_id === resume.student_id);
+            const linkedin = linkedinData?.find(item => item.student_id === resume.student_id);
+            const portfolio = portfolioData?.find(item => item.student_id === resume.student_id);
+            const interest = interestData?.find(item => item.student_id === resume.student_id);
+            const experience = experienceData?.find(item => item.student_id === resume.student_id);
             
             return {
               id: resume.id,
@@ -557,10 +556,9 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      // For real internships, submit to Supabase with the new schema
-      // Create entries in each of the application component tables
+      // For real internships, submit to Supabase with the new simplified schema
       
-      // 1. Resume Links
+      // 1. Resume Links (main application record)
       const { data: resumeData, error: resumeError } = await supabase
         .from('resume_links')
         .insert([{
@@ -578,84 +576,74 @@ export const InternshipProvider = ({ children }: { children: ReactNode }) => {
         throw resumeError;
       }
       
-      // 2. Cover Letters
-      const { error: coverLetterError } = await supabase
-        .from('cover_letters')
-        .insert([{
-          student_id: user.id,
-          student_name: user.name || null,
-          internship_title: internship.title,
-          internship_company: internship.company,
-          cover_letter: applicationData.cover_letter || null,
-          status: ApplicationStatus.PENDING
-        }]);
-      
-      if (coverLetterError) {
-        console.error("Error submitting cover letter:", coverLetterError);
+      // 2. Cover Letters (simplified structure)
+      if (applicationData.cover_letter) {
+        const { error: coverLetterError } = await supabase
+          .from('cover_letters')
+          .insert([{
+            student_id: user.id,
+            cover_letter: applicationData.cover_letter
+          }]);
+        
+        if (coverLetterError) {
+          console.error("Error submitting cover letter:", coverLetterError);
+        }
       }
       
-      // 3. LinkedIn Profile
-      const { error: linkedinError } = await supabase
-        .from('linkedin_profiles')
-        .insert([{
-          student_id: user.id,
-          student_name: user.name || null,
-          internship_title: internship.title,
-          internship_company: internship.company,
-          linkedin_url: additionalQuestions.linkedIn || null,
-          status: ApplicationStatus.PENDING
-        }]);
-      
-      if (linkedinError) {
-        console.error("Error submitting LinkedIn profile:", linkedinError);
+      // 3. LinkedIn Profile (simplified structure)
+      if (additionalQuestions.linkedIn) {
+        const { error: linkedinError } = await supabase
+          .from('linkedin_profiles')
+          .insert([{
+            student_id: user.id,
+            linkedin_url: additionalQuestions.linkedIn
+          }]);
+        
+        if (linkedinError) {
+          console.error("Error submitting LinkedIn profile:", linkedinError);
+        }
       }
       
-      // 4. Portfolio Links
-      const { error: portfolioError } = await supabase
-        .from('portfolio_links')
-        .insert([{
-          student_id: user.id,
-          student_name: user.name || null,
-          internship_title: internship.title,
-          internship_company: internship.company,
-          portfolio_url: additionalQuestions.portfolio || null,
-          status: ApplicationStatus.PENDING
-        }]);
-      
-      if (portfolioError) {
-        console.error("Error submitting portfolio link:", portfolioError);
+      // 4. Portfolio Links (simplified structure)
+      if (additionalQuestions.portfolio) {
+        const { error: portfolioError } = await supabase
+          .from('portfolio_links')
+          .insert([{
+            student_id: user.id,
+            portfolio_url: additionalQuestions.portfolio
+          }]);
+        
+        if (portfolioError) {
+          console.error("Error submitting portfolio link:", portfolioError);
+        }
       }
       
-      // 5. Interest Statements
-      const { error: interestError } = await supabase
-        .from('interest_statements')
-        .insert([{
-          student_id: user.id,
-          student_name: user.name || null,
-          internship_title: internship.title,
-          internship_company: internship.company,
-          why_interested: additionalQuestions.whyInterested || null,
-          status: ApplicationStatus.PENDING
-        }]);
-      
-      if (interestError) {
-        console.error("Error submitting interest statement:", interestError);
+      // 5. Interest Statements (simplified structure)
+      if (additionalQuestions.whyInterested) {
+        const { error: interestError } = await supabase
+          .from('interest_statements')
+          .insert([{
+            student_id: user.id,
+            why_interested: additionalQuestions.whyInterested
+          }]);
+        
+        if (interestError) {
+          console.error("Error submitting interest statement:", interestError);
+        }
       }
       
-      // 6. Experience Descriptions
-      const { error: experienceError } = await supabase
-        .from('experience_descriptions')
-        .insert([{
-          student_id: user.id,
-          student_name: user.name || null,
-          internship_title: internship.title,
-          internship_company: internship.company,
-          relevant_experience: additionalQuestions.relevantExperience || null,
-          status: ApplicationStatus.PENDING
-        }]);
-      
-      if (experienceError) {
-        console.error("Error submitting experience description:", experienceError);
+      // 6. Experience Descriptions (simplified structure)
+      if (additionalQuestions.relevantExperience) {
+        const { error: experienceError } = await supabase
+          .from('experience_descriptions')
+          .insert([{
+            student_id: user.id,
+            relevant_experience: additionalQuestions.relevantExperience
+          }]);
+        
+        if (experienceError) {
+          console.error("Error submitting experience description:", experienceError);
+        }
       }
       
       if (resumeData) {
