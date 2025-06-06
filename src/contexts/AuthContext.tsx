@@ -211,7 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       setLoading(false);
-      return { data, error };
+      return { data, error: null };
     } catch (error: any) {
       console.error("Error signing up:", error);
       toast({
