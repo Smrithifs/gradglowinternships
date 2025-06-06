@@ -162,7 +162,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         options: {
           data: {
             role,
-            name
+            name,
+            email
           },
           emailRedirectTo: `${window.location.origin}/internships`
         }
@@ -174,7 +175,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: error.message || "An error occurred during sign up.",
           variant: "destructive",
         });
-        throw error;
+        setLoading(false);
+        return { data: { user: null, session: null }, error };
       }
       
       if (data.user) {
@@ -183,8 +185,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: data.user.id,
           role: role,
           name: name,
-          email: email  // Add email to the profile data
+          email: email
         };
+        
+        console.log("Creating profile with data:", profileData);
         
         const { error: profileError } = await supabase
           .from('profiles')
@@ -198,6 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             variant: "destructive",
           });
         } else {
+          console.log("Profile created successfully");
           toast({
             title: "Account created!",
             description: "Please check your email for verification link.",
@@ -205,6 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       
+      setLoading(false);
       return { data, error };
     } catch (error: any) {
       console.error("Error signing up:", error);
