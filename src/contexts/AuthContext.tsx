@@ -183,7 +183,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: data.user.id,
           role: role,
           name: name,
-          email: email
+          email: email  // Add email to the profile data
         };
         
         const { error: profileError } = await supabase
